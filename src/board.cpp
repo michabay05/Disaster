@@ -1,11 +1,11 @@
-#include "board.h"
+#include "board.hpp"
 
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
 
-#include "attack.h"
-#include "magics.h"
+#include "attack.hpp"
+#include "magics.hpp"
 
 char pieceStr[14] = "PNBRQKpnbrqk ";
 
@@ -218,4 +218,61 @@ void parseFen(const std::string fenStr, Board &board) {
   board.updateUnits();
 }
 
-const char *genFen(Board &board) { return "abcd"; }
+// TODO: not complete
+std::string genFen(Board &board) {
+  std::string fen = "";
+  // Pieces
+  int offset;
+  for (int r = 0; r < 8; r++) {
+    offset = 0;
+    for (int f = 0; f < 8; f++) {
+      int currPiece;
+      if ((currPiece = getPieceOnSquare(board, SQ(r, f))) != E) {
+        if (offset > 0) {
+          // Store offset and reset it
+          fen += std::to_string(offset);
+          offset = 0;
+        }
+        fen += pieceStr[currPiece];
+      } else
+        offset++;
+    }
+    if (offset > 0)
+      fen += std::to_string(offset);
+    if (r != 7)
+      fen += '/';
+  }
+  fen += " ";
+
+  // Side to move
+  if (board.side == WHITE)
+      fen += 'w';
+  else if (board.side == BLACK)
+      fen += 'b';
+  fen += " ";
+
+  // Castling rights
+  char castlingLtrs[5] = {'-', '-', '-', '-'};
+  if (getBit(board.castling, wk))
+      castlingLtrs[wk] = 'K';
+  if (getBit(board.castling, wq))
+      castlingLtrs[wq] = 'Q';
+  if (getBit(board.castling, bk))
+      castlingLtrs[bk] = 'k';
+  if (getBit(board.castling, bq))
+      castlingLtrs[bq] = 'q';
+
+  fen += castlingLtrs;
+  fen += " ";
+  // Enpassant squares
+  if (board.enpassant != -1)
+      fen += strCoords[board.enpassant];
+  else
+      fen += '-';
+  fen += " ";
+  // Half moves
+  fen += std::to_string(board.halfMoves) + " ";
+  // Full moves
+  fen += std::to_string(board.fullMoves) + " ";
+  return fen;
+}

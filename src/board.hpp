@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defs.h"
+#include "defs.hpp"
 #include <string>
 
 extern char pieceStr[14];
@@ -31,4 +31,4 @@ void printAttacked(int side, Board& board);
 /* ------ FEN -------*/
 extern const char *position[8];
 void parseFen(const std::string fenStr, Board& board);
-const char *genFen(Board &board);
+std::string genFen(Board &board);

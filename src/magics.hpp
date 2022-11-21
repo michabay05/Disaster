@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defs.h"
+#include "defs.hpp"
 
 namespace Magics {
 

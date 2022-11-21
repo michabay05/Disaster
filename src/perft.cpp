@@ -1,8 +1,8 @@
-#include "perft.h"
+#include "perft.hpp"
 
-#include "bitboard.h"
-#include "misc.h"
-#include "move.h"
+#include "bitboard.hpp"
+#include "misc.hpp"
+#include "move.hpp"
 
 namespace Perft {
 long totalNodes;

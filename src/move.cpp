@@ -1,37 +1,51 @@
-#include "move.h"
+#include "move.hpp"
 
 #include <iostream>
 
-#include "attack.h"
-#include "bitboard.h"
-#include "magics.h"
+#include "attack.hpp"
+#include "bitboard.hpp"
+#include "magics.hpp"
 
 namespace Move {
 
+MoveList::MoveList() {
+  memset(list, 0, sizeof(list));
+  count = 0;
+}
 void MoveList::add(int move) {
   list[count] = move;
   count++;
 }
 
-// clang-format off
-	void MoveList::printList() {
-		printf("    Source   |   Target  |  Piece  |  Promoted  |  Capture  |  Two Square Push  |  Enpassant  |  Castling\n");
-		printf("  -----------------------------------------------------------------------------------------------------------\n");
-		for (int i = 0; i < count; i++) {
-			printf("       %s    |    %s     |    %c    |     %c      |     %d     |         %d         |      %d      |     %d\n",
-				strCoords[getSource(list[i])],
-				strCoords[getTarget(list[i])],
-				pieceStr[getPiece(list[i])],
-				pieceStr[getPromoted(list[i])],
-				isCapture(list[i]),
-				isTwoSquarePush(list[i]),
-				isEnpassant(list[i]),
-				isCastling(list[i])
-			);
-		}
-		printf("\n    Total number of moves: %d\n", count);
-	}
-// clang-format on
+// Returns index from move list, if move is found
+int MoveList::search(int source, int target) {
+  for (int i = 0; i < count; i++) {
+    // Parse move info
+    int listMoveSource = getSource(list[i]);
+    int listMoveTarget = getTarget(list[i]);
+    // Check if source and target match
+    if (listMoveSource == source && listMoveTarget == target)
+      // Return index of move from movelist, if true
+      return i;
+  }
+  return 0;
+}
+void MoveList::printList() {
+  printf("    Source   |   Target  |  Piece  |  Promoted  |  Capture  |  Two "
+         "Square Push  |  Enpassant  |  Castling\n");
+  printf("  "
+         "---------------------------------------------------------------------"
+         "--------------------------------------\n");
+  for (int i = 0; i < count; i++) {
+    printf("       %s    |    %s     |    %c    |     %c      |     %d     |   "
+           "      %d         |      %d      |     %d\n",
+           strCoords[getSource(list[i])], strCoords[getTarget(list[i])],
+           pieceStr[getPiece(list[i])], pieceStr[getPromoted(list[i])],
+           isCapture(list[i]), isTwoSquarePush(list[i]), isEnpassant(list[i]),
+           isCastling(list[i]));
+  }
+  printf("\n    Total number of moves: %d\n", count);
+}
 
 int encode(int source, int target, int piece, int promoted, bool isCapture,
            bool isTwoSquarePush, bool isEnpassant, bool isCastling) {
@@ -64,6 +78,20 @@ const std::string toString(const int move) {
   moveStr += strCoords[getTarget(move)];
   moveStr += pieceStr[getPromoted(move)];
   return moveStr;
+}
+
+int parse(const std::string moveStr, Board &board) {
+    return parse(moveStr.c_str(), board);
+}
+
+int parse(const char *moveStr, Board &board) {
+  int source = SQ((8 - (moveStr[1] - '0')), (moveStr[0] - 'a'));
+  int target = SQ((8 - (moveStr[3] - '0')), (moveStr[2] - 'a'));
+
+  MoveList mL;
+  generate(mL, board);
+  int searchedMove = mL.search(source, target);
+  return searchedMove ? mL.list[searchedMove] : 0;
 }
 
 void generate(MoveList &moveList, Board &board) {
@@ -109,10 +137,14 @@ void generatePawns(MoveList &moveList, Board &board) {
       // Quiet moves
       // Promotion
       if ((source >= promotionStart) && (source <= promotionStart + 7)) {
-        moveList.add(encode(source, target, piece, (!board.side ? Q : q), 0, 0, 0, 0));
-        moveList.add(encode(source, target, piece, (!board.side ? R : r), 0, 0, 0, 0));
-        moveList.add(encode(source, target, piece, (!board.side ? B : b), 0, 0, 0, 0));
-        moveList.add(encode(source, target, piece, (!board.side ? N : n), 0, 0, 0, 0));
+        moveList.add(
+            encode(source, target, piece, (!board.side ? Q : q), 0, 0, 0, 0));
+        moveList.add(
+            encode(source, target, piece, (!board.side ? R : r), 0, 0, 0, 0));
+        moveList.add(
+            encode(source, target, piece, (!board.side ? B : b), 0, 0, 0, 0));
+        moveList.add(
+            encode(source, target, piece, (!board.side ? N : n), 0, 0, 0, 0));
       } else {
         moveList.add(encode(source, target, piece, E, 0, 0, 0, 0));
         if ((source >= doublePushStart && source <= doublePushStart + 7) &&
@@ -128,10 +160,14 @@ void generatePawns(MoveList &moveList, Board &board) {
       target = Bitboard::getLs1bIndex(attackCopy);
       // Capture move
       if ((source >= promotionStart) && (source <= promotionStart + 7)) {
-        moveList.add(encode(source, target, piece, (!board.side ? Q : q), 1, 0, 0, 0));
-        moveList.add(encode(source, target, piece, (!board.side ? R : r), 1, 0, 0, 0));
-        moveList.add(encode(source, target, piece, (!board.side ? B : b), 1, 0, 0, 0));
-        moveList.add(encode(source, target, piece, (!board.side ? N : n), 1, 0, 0, 0));
+        moveList.add(
+            encode(source, target, piece, (!board.side ? Q : q), 1, 0, 0, 0));
+        moveList.add(
+            encode(source, target, piece, (!board.side ? R : r), 1, 0, 0, 0));
+        moveList.add(
+            encode(source, target, piece, (!board.side ? B : b), 1, 0, 0, 0));
+        moveList.add(
+            encode(source, target, piece, (!board.side ? N : n), 1, 0, 0, 0));
       } else
         moveList.add(encode(source, target, piece, E, 1, 0, 0, 0));
       // Remove 'source' bit
@@ -331,8 +367,8 @@ bool make(Board *main, int move, MoveType moveFlag) {
 
     // If capture, remove piece of opponent bitboard
     if (capture) {
-      for (int bbPiece = (!main->side ? p : P); bbPiece <= (!main->side ? k : K);
-           bbPiece++) {
+      for (int bbPiece = (!main->side ? p : P);
+           bbPiece <= (!main->side ? k : K); bbPiece++) {
         if (getBit(main->pieces[bbPiece], target)) {
           popBit(main->pieces[bbPiece], target);
           break;
@@ -401,7 +437,8 @@ bool make(Board *main, int move, MoveType moveFlag) {
     // Check if king is in check
     if (isSquareAttacked(
             main->side,
-            (Bitboard::getLs1bIndex(main->pieces[!main->side ? k : K])), *main)) {
+            (Bitboard::getLs1bIndex(main->pieces[!main->side ? k : K])),
+            *main)) {
       // Restore board and return false
       *main = clone;
       return false;

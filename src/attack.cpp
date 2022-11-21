@@ -1,10 +1,10 @@
-#include "attack.h"
+#include "attack.hpp"
 
 #include <cassert>
 #include <cstdio>
 
-#include "bitboard.h"
-#include "magics.h"
+#include "bitboard.hpp"
+#include "magics.hpp"
 
 namespace Attack {
 

@@ -1,12 +1,14 @@
 #include <cstdio>
 
-#include "attack.h"
-#include "bitboard.h"
-#include "board.h"
-#include "eval.h"
-#include "magics.h"
-#include "move.h"
-#include "perft.h"
+#include "attack.hpp"
+#include "bitboard.hpp"
+#include "board.hpp"
+#include "eval.hpp"
+#include "magics.hpp"
+#include "move.hpp"
+#include "perft.hpp"
+#include "search.hpp"
+#include "uci.hpp"
 
 #ifdef _DEBUG
 #define DEBUG 1
@@ -16,9 +18,11 @@
 
 void test() {
     Board b;
-    parseFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RN1QKBNR w KQkq - 0 1", b);
-    b.display();
-    printf("Evaluation: %d\n", Evaluate::EvalPosition(b));
+    parseFen(position[2], b);
+    Move::MoveList mL;
+    Move::generate(mL, b);
+    for (int i = 0; i < mL.count; i++)
+        Search::scoreMoves(b, mL.list[i]);
 }
 
 int main(int argc, char **argv) {
@@ -26,6 +30,8 @@ int main(int argc, char **argv) {
 
   if (DEBUG)
     test();
+  else
+    UCI::loop();
 
   return 0;
 }

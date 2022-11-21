@@ -1,6 +1,6 @@
 #pragma once
 
-#include "defs.h"
+#include "defs.hpp"
 
 namespace Attack {
 extern U64 pawnAttacks[2][64];       // [color][square]

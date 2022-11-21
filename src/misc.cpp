@@ -1,4 +1,4 @@
-#include "misc.h"
+#include "misc.hpp"
 
 long long Time::startTime = 0LL;
 long long Time::endTime = 0LL;

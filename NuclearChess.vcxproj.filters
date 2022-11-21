@@ -15,34 +15,37 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\defs.h">
+    <ClInclude Include="src\defs.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\bitboard.h">
+    <ClInclude Include="src\bitboard.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\attack.h">
+    <ClInclude Include="src\attack.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\magics.h">
+    <ClInclude Include="src\magics.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\board.h">
+    <ClInclude Include="src\board.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\move.h">
+    <ClInclude Include="src\move.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\perft.h">
+    <ClInclude Include="src\perft.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\misc.h">
+    <ClInclude Include="src\misc.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\eval.h">
+    <ClInclude Include="src\eval.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\search.h">
+    <ClInclude Include="src\search.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uci.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -75,6 +78,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\search.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\uci.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "board.h"
-#include "defs.h"
+#include "board.hpp"
+#include "defs.hpp"
 
 #include <string>
 
@@ -11,8 +11,10 @@ enum MoveType { allMoves, onlyCaptures };
 
 struct MoveList {
   int list[256];
-  short count = 0;
+  short count;
+  MoveList();
   void add(int move);
+  int search(int source, int target);
   void printList();
 };
 
@@ -27,6 +29,8 @@ bool isTwoSquarePush(const int move);
 bool isEnpassant(const int move);
 bool isCastling(const int move);
 const std::string toString(const int move);
+int parse(const std::string moveStr, Board &board);
+int parse(const char *moveStr, Board &board);
 void generate(MoveList &moveList, Board &board);
 void generatePawns(MoveList &moveList, Board &board);
 void generateKnights(MoveList &moveList, Board &board);

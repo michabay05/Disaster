@@ -19,6 +19,7 @@ enum Squares {
 #define ROW(sq) (sq >> 3)
 #define COL(sq) (sq & 7)
 #define SQ(r, f) (r * 8 + f)
+#define FLIP(sq) (((7 - ROW(sq)) * 8) + COL(sq))
 
 #define setBit(bitboard, square) ((bitboard) |= (1ULL << (square)))
 #define getBit(bitboard, square) (((bitboard) & (1ULL << (square))) ? 1 : 0)

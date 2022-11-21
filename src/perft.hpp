@@ -1,7 +1,7 @@
 #pragma once
 
-#include "board.h"
-#include "defs.h"
+#include "board.hpp"
+#include "defs.hpp"
 
 namespace Perft {
 void Driver(Board &board, int depth);

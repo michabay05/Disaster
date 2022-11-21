@@ -1,13 +1,13 @@
-#include "magics.h"
+#include "magics.hpp"
 
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
-#include "attack.h"
-#include "bitboard.h"
-#include "board.h"
+#include "attack.hpp"
+#include "bitboard.hpp"
+#include "board.hpp"
 
 namespace Magics {
 static int randomState = 1804289383;
