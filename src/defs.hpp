@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 
 // clang-format off
 enum Squares {
@@ -29,21 +30,22 @@ enum Squares {
 enum Piece { P, N, B, R, Q, K, p, n, b, r, q, k, E };
 enum PieceTypes { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 enum Color { WHITE, BLACK, BOTH };
-
 /* Direction offsets */
-#define NORTH 8
-#define SOUTH -8
-#define WEST -1
-#define EAST 1
-#define NE 9      // NORTH + EAST
-#define NW 7      // NORTH + WEST
-#define SE -7     // SOUTH + EAST
-#define SW -9     // SOUTH + WEST
-#define NE_N 17   // 2(NORTH) + EAST -> 'KNIGHT ONLY'
-#define NE_E 10   // NORTH + 2(EAST) -> 'KNIGHT ONLY'
-#define NW_N 15   // 2(NORTH) + WEST -> 'KNIGHT ONLY'
-#define NW_W 6    // NORTH + 2(WEST) -> 'KNIGHT ONLY'
-#define SE_S -15  // 2(SOUTH) + EAST -> 'KNIGHT ONLY'
-#define SE_E -6   // SOUTH + 2(EAST) -> 'KNIGHT ONLY'
-#define SW_S -17  // 2(SOUTH) + WEST -> 'KNIGHT ONLY'
-#define SW_W -10  // SOUTH + 2(WEST) -> 'KNIGHT ONLY'
+enum Direction {
+  NORTH = 8,
+  SOUTH = -8,
+  WEST = -1,
+  EAST = 1,
+  NE = 9,     // NORTH + EAST
+  NW = 7,     // NORTH + WEST
+  SE = -7,    // SOUTH + EAST
+  SW = -9,    // SOUTH + WEST
+  NE_N = 17,  // 2(NORTH) + EAST -> 'KNIGHT ONLY'
+  NE_E = 10,  // NORTH + 2(EAST) -> 'KNIGHT ONLY'
+  NW_N = 15,  // 2(NORTH) + WEST -> 'KNIGHT ONLY'
+  NW_W = 6,   // NORTH + 2(WEST) -> 'KNIGHT ONLY'
+  SE_S = -15, // 2(SOUTH) + EAST -> 'KNIGHT ONLY'
+  SE_E = -6,  // SOUTH + 2(EAST) -> 'KNIGHT ONLY'
+  SW_S = -17, // 2(SOUTH) + WEST -> 'KNIGHT ONLY'
+  SW_W = -10, // SOUTH + 2(WEST) -> 'KNIGHT ONLY'
+};

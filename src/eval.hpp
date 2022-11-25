@@ -5,6 +5,6 @@
 
 namespace Evaluate {
 extern const int materialScore[12];
-int EvalPosition(Board &board);
+int EvalPosition(const Board &board);
 
 } // namespace Evaluate

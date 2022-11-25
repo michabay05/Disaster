@@ -48,6 +48,12 @@
     <ClInclude Include="src\uci.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\zobrist.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tt.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -81,6 +87,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\uci.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\zobrist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

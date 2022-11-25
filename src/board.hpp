@@ -2,33 +2,35 @@
 
 #include "defs.hpp"
 #include <string>
+#include <array>
 
-extern char pieceStr[14];
-extern const char *strCoords[65];
-extern const int castlingRights[64];
+extern const std::string pieceStr;
+extern const std::array<std::string, 65> strCoords;
+extern const std::array<int, 64> castlingRights;
 
 struct Board {
-  U64 pieces[12];
-  U64 units[3];
-  int side;
-  int enpassant;
-  int castling;
-  int fullMoves;
-  int halfMoves;
+  std::array<U64, 12> pieces;
+  std::array<U64, 3> units;
+  int side = 0;
+  int enpassant = noSq;
+  int castling = 0;
+  int fullMoves = 0;
+  int halfMoves = 0;
+  U64 hashKey = 0ULL;
+  U64 hashLock = 0ULL;
 
   Board();
   void updateUnits();
-  void display();
-  void printCastling();
+  void display() const;
+  void printCastling() const;
 };
 
 enum CastlingRights { wk, wq, bk, bq };
 
-int getPieceOnSquare(Board &board, int sq);
+int getPieceOnSquare(const Board &board, int sq);
 
-bool isSquareAttacked(int side, int sq, Board& board);
-void printAttacked(int side, Board& board);
+bool isSquareAttacked(const int side, const int sq, const Board &board);
+void printAttacked(const int side, const Board& board);
 /* ------ FEN -------*/
-extern const char *position[8];
-void parseFen(const std::string fenStr, Board& board);
-std::string genFen(Board &board);
+extern const std::array<std::string, 8> position;
+void parseFen(const std::string &fenStr, Board &board);

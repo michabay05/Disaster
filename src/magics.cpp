@@ -8,12 +8,12 @@
 #include "attack.hpp"
 #include "bitboard.hpp"
 #include "board.hpp"
+#include "misc.hpp"
 
 namespace Magics {
-static int randomState = 1804289383;
 
 // clang-format off
-const U64 bishopMagics[64] = {
+const std::array<U64, 64> bishopMagics = {
 	0x5048200440504100ULL, 0x102288004a8002ULL, 0x410c088082820aULL,
 	0x20082080210040a0ULL, 0x1104000401400ULL, 0x44010420c4418002ULL,
 	0x260420820092000ULL, 0x12420041084010ULL, 0x2000041010511110ULL,
@@ -38,7 +38,7 @@ const U64 bishopMagics[64] = {
 	0x2820404268200ULL,
 };
 
-const U64 rookMagics[64] = {
+const std::array<U64, 64> rookMagics = {
 	0x80102040008000ULL, 0x8400a20001001c0ULL, 0x100200010090042ULL,
 	0x2080040800801000ULL, 0x200204850840200ULL, 0x200100104080200ULL,
 	0x200020001408804ULL, 0x8200010080402a04ULL, 0x11c800040002081ULL,
@@ -64,33 +64,10 @@ const U64 rookMagics[64] = {
 };
 // clang-format on
 
-int random32() {
-  int number = randomState;
-
-  // XOR-shift algorithm
-  number ^= number << 13;
-  number ^= number >> 17;
-  number ^= number << 5;
-
-  // Update random state
-  randomState = number;
-
-  return number;
-}
-
-U64 random64() {
-  U64 rand1, rand2, rand3, rand4;
-  rand1 = (U64)(random32() & 0xFFFF);
-  rand2 = (U64)(random32() & 0xFFFF);
-  rand3 = (U64)(random32() & 0xFFFF);
-  rand4 = (U64)(random32() & 0xFFFF);
-  return rand1 | (rand2 << 16) | (rand3 << 32) | (rand4 << 48);
-}
 
 U64 genRandomMagic() { return random64() & random64() & random64(); }
 
 U64 findMagicNumber(int sq, int relevantBits, int piece) {
-  assert(piece == BISHOP || piece == ROOK);
   // 4096(1 << 12) - because it's maximum possible occupancy variations
   U64 usedAttacks[4096], occupancies[4096], attacks[4096], magicNumber;
   U64 possibleOccupancy = (piece == BISHOP) ? Attack::genBishopOccupancy(sq)
@@ -124,7 +101,7 @@ U64 findMagicNumber(int sq, int relevantBits, int piece) {
       return magicNumber;
   }
   printf("Failed to find magic number for %s on %s\n",
-         (piece == BISHOP) ? "bishop" : "rook", strCoords[sq]);
+         (piece == BISHOP) ? "bishop" : "rook", strCoords[sq].c_str());
   return 0;
 }
 

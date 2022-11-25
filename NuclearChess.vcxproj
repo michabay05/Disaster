@@ -107,6 +107,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,7 +143,9 @@
     <ClInclude Include="src\move.hpp" />
     <ClInclude Include="src\perft.hpp" />
     <ClInclude Include="src\search.hpp" />
+    <ClInclude Include="src\tt.hpp" />
     <ClInclude Include="src\uci.hpp" />
+    <ClInclude Include="src\zobrist.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\attack.cpp" />
@@ -154,7 +158,9 @@
     <ClCompile Include="src\move.cpp" />
     <ClCompile Include="src\perft.cpp" />
     <ClCompile Include="src\search.cpp" />
+    <ClCompile Include="src\tt.cpp" />
     <ClCompile Include="src\uci.cpp" />
+    <ClCompile Include="src\zobrist.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

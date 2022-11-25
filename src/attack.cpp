@@ -55,8 +55,7 @@ void initLeapers() {
   }
 }
 
-void initSliding(int piece) {
-  assert(piece == BISHOP || piece == ROOK);
+void initSliding(const int piece) {
   for (int sq = 0; sq < 64; sq++) {
     bishopOccMasks[sq] = genBishopOccupancy(sq);
     rookOccMasks[sq] = genRookOccupancy(sq);
@@ -80,7 +79,7 @@ void initSliding(int piece) {
   }
 }
 
-void genPawnAttacks(int side, int sq) {
+void genPawnAttacks(const int side, const int sq) {
   if (side == WHITE) {
     if (ROW(sq) > 0 && COL(sq) > 0) setBit(pawnAttacks[WHITE][sq], sq + SW);
     if (ROW(sq) > 0 && COL(sq) < 7) setBit(pawnAttacks[WHITE][sq], sq + SE);
@@ -90,7 +89,7 @@ void genPawnAttacks(int side, int sq) {
   }
 }
 
-void genKnightAttacks(int sq) {
+void genKnightAttacks(const int sq) {
   if (ROW(sq) <= 5 && COL(sq) >= 1)
     setBit(knightAttacks[sq], sq + NW_N);
 
@@ -116,7 +115,7 @@ void genKnightAttacks(int sq) {
     setBit(knightAttacks[sq], sq + SW_S);
 }
 
-void genKingAttacks(int sq) {
+void genKingAttacks(const int sq) {
   if (ROW(sq) > 0) setBit(kingAttacks[sq], sq + SOUTH);
   if (ROW(sq) < 7) setBit(kingAttacks[sq], sq + NORTH);
   if (COL(sq) > 0) setBit(kingAttacks[sq], sq + WEST);
@@ -127,7 +126,7 @@ void genKingAttacks(int sq) {
   if (ROW(sq) < 7 && COL(sq) < 7) setBit(kingAttacks[sq], sq + NE);
 }
 
-U64 genBishopOccupancy(int sq) {
+U64 genBishopOccupancy(const int sq) {
   U64 output = 0ULL;
   int r, f;
   int sr = ROW(sq), sf = COL(sq);
@@ -148,7 +147,7 @@ U64 genBishopOccupancy(int sq) {
   return output;
 }
 
-U64 genBishopAttack(int sq, U64 blockerBoard) {
+U64 genBishopAttack(const int sq, U64 blockerBoard) {
   U64 output = 0ULL;
   int r, f;
   int sr = ROW(sq), sf = COL(sq);
@@ -177,7 +176,7 @@ U64 genBishopAttack(int sq, U64 blockerBoard) {
   return output;
 }
 
-U64 genRookOccupancy(int sq) {
+U64 genRookOccupancy(const int sq) {
   U64 output = 0ULL;
   int r, f;
   int sr = ROW(sq), sf = COL(sq);
@@ -194,7 +193,7 @@ U64 genRookOccupancy(int sq) {
   return output;
 }
 
-U64 genRookAttack(int sq, U64 blockerBoard) {
+U64 genRookAttack(const int sq, const U64 blockerBoard) {
   U64 output = 0ULL;
   int r, f;
   int sr = ROW(sq), sf = COL(sq);
@@ -223,7 +222,7 @@ U64 genRookAttack(int sq, U64 blockerBoard) {
   return output;
 }
 
-U64 setOccupancy(int index, int relevantBits, U64 attackMask) {
+U64 setOccupancy(const int index, const int relevantBits, U64 attackMask) {
   U64 occupancy = 0ULL;
   for (int count = 0; count < relevantBits; count++) {
     int ls1bIndex = Bitboard::getLs1bIndex(attackMask);

@@ -3,6 +3,7 @@
 #include "bitboard.hpp"
 #include "misc.hpp"
 #include "move.hpp"
+#include "zobrist.hpp"
 
 namespace Perft {
 long totalNodes;
@@ -25,6 +26,22 @@ void Driver(Board &board, int depth) {
 
     // Restore board state
     board = clone;
+    /* ============= FOR DEBUG PURPOSES ONLY ===============*/
+    U64 updatedKey = board.hashKey;
+    U64 updatedLock = board.hashLock;
+    Zobrist::genKey(board);
+    Zobrist::genLock(board);
+    if (board.hashKey != updatedKey) {
+      printf("\nBoard.MakeMove(%s)\n", Move::toString(moveList.list[i]).c_str());
+      board.display();
+      printf("Key should've been 0x%llx instead of 0x%llx\n", board.hashKey, updatedKey);
+    }
+    if (board.hashLock != updatedLock) {
+      printf("\nBoard.MakeMove(%s)\n", Move::toString(moveList.list[i]).c_str());
+      board.display();
+      printf("Lock should've been 0x%llx instead of 0x%llx\n", board.hashLock, updatedLock);
+    }
+    /*============= FOR DEBUG PURPOSES ONLY =============== */
   }
 }
 

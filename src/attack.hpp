@@ -16,14 +16,14 @@ extern const int rookRelevantBits[64];   // [square]
 // Prototypes
 void init();
 void initLeapers();
-void initSliding(int piece);
-void genPawnAttacks(int side, int sq);
-void genKnightAttacks(int sq);
-void genKingAttacks(int sq);
-U64 genBishopOccupancy(int sq);
-U64 genBishopAttack(int sq, U64 blockerBoard);
-U64 genRookOccupancy(int sq);
-U64 genRookAttack(int sq, U64 blockerBoard);
-U64 setOccupancy(int index, int relevantBits, U64 attackMask);
+void initSliding(const int piece);
+void genPawnAttacks(const int side, const int sq);
+void genKnightAttacks(const int sq);
+void genKingAttacks(const int sq);
+U64 genBishopOccupancy(const int sq);
+U64 genBishopAttack(const int sq, const U64 blockerBoard);
+U64 genRookOccupancy(const int sq);
+U64 genRookAttack(const int sq, const U64 blockerBoard);
+U64 setOccupancy(const int index, const int relevantBits, U64 attackMask);
 
 }
