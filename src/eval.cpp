@@ -1,111 +1,138 @@
 #include "eval.hpp"
 
 #include "bitboard.hpp"
+#include "psqt.hpp"
 
-namespace Evaluate {
-const int materialScore[12] = {
-    100,    // white pawn score
-    300,    // white knight scrore
-    350,    // white bishop score
-    500,    // white rook score
-    1000,   // white queen score
-    10000,  // white king score
-    -100,   // black pawn score
-    -300,   // black knight scrore
-    -350,   // black bishop score
-    -500,   // black rook score
-    -1000,  // black queen score
-    -10000, // black king score
-};
+namespace Eval {
 
-// pawn positional score
-const int pawnScore[64] = {
-    90, 90, 90, 90,  90,  90, 90, 90, 30, 30, 30, 40, 40, 30, 30, 30,
-    20, 20, 20, 30,  30,  30, 20, 20, 10, 10, 10, 20, 20, 10, 10, 10,
-    5,  5,  10, 20,  20,  5,  5,  5,  0,  0,  0,  5,  5,  0,  0,  0,
-    0,  0,  0,  -10, -10, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
+const std::array<std::array<int, 12>, 2> materialScore = {{
+    // opening material score
+    {82, 337, 365, 477, 1025, 12000, -82, -337, -365, -477, -1025, -12000},
 
-// knight positional score
-const int knightScore[64] = {
-    -5, 0,  0,  0,  0,  0,  0,  -5, -5, 0,   0,  10, 10, 0,  0,   -5,
-    -5, 5,  20, 20, 20, 20, 5,  -5, -5, 10,  20, 30, 30, 20, 10,  -5,
-    -5, 10, 20, 30, 30, 20, 10, -5, -5, 5,   20, 10, 10, 20, 5,   -5,
-    -5, 0,  0,  0,  0,  0,  0,  -5, -5, -10, 0,  0,  0,  0,  -10, -5};
+    // endgame material score
+    {94, 281, 297, 512, 936, 12000, -94, -281, -297, -512, -936, -12000}
+}};
 
-// bishop positional score
-const int bishopScore[64] = {0,  0,  0,  0,  0, 0, 0,   0,  0,  0,   0,  0,  0,
-                              0,  0,  0,  0,  0, 0, 10,  10, 0,  0,   0,  0,  0,
-                              10, 20, 20, 10, 0, 0, 0,   0,  10, 20,  20, 10, 0,
-                              0,  0,  10, 0,  0, 0, 0,   10, 0,  0,   30, 0,  0,
-                              0,  0,  30, 0,  0, 0, -10, 0,  0,  -10, 0,  0
+const int OPENING_PHASE_SCORE = 6192;
+const int ENDGAME_PHASE_SCORE = 518;
 
-};
+int EvalPosition(const Board& board) {
+    using enum Piece;
 
-// rook positional score
-const int rookScore[64] = {50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
-                            50, 50, 50, 0,  0,  10, 20, 20, 10, 0,  0,  0,  0,
-                            10, 20, 20, 10, 0,  0,  0,  0,  10, 20, 20, 10, 0,
-                            0,  0,  0,  10, 20, 20, 10, 0,  0,  0,  0,  10, 20,
-                            20, 10, 0,  0,  0,  0,  0,  20, 20, 0,  0,  0
+    int phaseScore = getPhaseScore(board);
+    Phase phase;
+    if (phaseScore >= OPENING_PHASE_SCORE)
+        phase = Phase::OPENING;
+    else if (phaseScore <= ENDGAME_PHASE_SCORE)
+        phase = Phase::ENDGAME;
+    else
+        phase = Phase::MIDDLEGAME;
+    uint64_t bitboard;
+    int sq;
+    int openingScore = 0, endgameScore = 0;
+    for (int piece = (int)P; piece <= (int)k; piece++) {
+        bitboard = board.pos.pieces[piece];
+        while (bitboard) {
+            sq = Bitboard::getLs1bIndex(bitboard);
+            // Material score
+            openingScore += materialScore[(int)Phase::OPENING][piece];
+            endgameScore += materialScore[(int)Phase::ENDGAME][piece];
+            // Score positional piece scores
+            switch (piece) {
+                // evaluate white pieces
+            case (int)P:
+                openingScore += PSQT::PSQTEval(Phase::OPENING, PieceTypes::PAWN, sq);
+                endgameScore += PSQT::PSQTEval(Phase::ENDGAME, PieceTypes::PAWN, sq);
+                break;
+            case (int)N:
+                openingScore += PSQT::PSQTEval(Phase::OPENING, PieceTypes::KNIGHT, sq);
+                endgameScore += PSQT::PSQTEval(Phase::ENDGAME, PieceTypes::KNIGHT, sq);
+                break;
+            case (int)B:
+                openingScore += PSQT::PSQTEval(Phase::OPENING, PieceTypes::BISHOP, sq);
+                endgameScore += PSQT::PSQTEval(Phase::ENDGAME, PieceTypes::BISHOP, sq);
+                break;
+            case (int)R:
+                openingScore += PSQT::PSQTEval(Phase::OPENING, PieceTypes::ROOK, sq);
+                endgameScore += PSQT::PSQTEval(Phase::ENDGAME, PieceTypes::ROOK, sq);
+                break;
+            case (int)Q:
+                openingScore += PSQT::PSQTEval(Phase::OPENING, PieceTypes::QUEEN, sq);
+                endgameScore += PSQT::PSQTEval(Phase::ENDGAME, PieceTypes::QUEEN, sq);
+                break;
+            case (int)K:
+                openingScore += PSQT::PSQTEval(Phase::OPENING, PieceTypes::KING, sq);
+                endgameScore += PSQT::PSQTEval(Phase::ENDGAME, PieceTypes::KING, sq);
+                break;
 
-};
-
-// king positional score
-const int kingScore[64] = {0,  0,  0,  0,  0,  0,  0,  0,  0,   0,  5,  5,  5,
-                            5,  0,  0,  0,  5,  5,  10, 10, 5,   5,  0,  0,  5,
-                            10, 20, 20, 10, 5,  0,  0,  5,  10,  20, 20, 10, 5,
-                            0,  0,  0,  5,  10, 10, 5,  0,  0,   0,  5,  5,  -5,
-                            -5, 0,  5,  0,  0,  0,  5,  0,  -15, 0,  10, 0};
-int EvalPosition(const Board &board) {
-  int score = 0;
-  U64 bitboard;
-  int sq;
-  for (int piece = P; piece <= k; piece++) {
-    bitboard = board.pieces[piece];
-    while (bitboard) {
-      sq = Bitboard::getLs1bIndex(bitboard);
-      // Material score
-      score += materialScore[piece];
-      // score positional piece scores
-      switch (piece) {
-        // evaluate white pieces
-      case P:
-        score += pawnScore[sq];
-        break;
-      case N:
-        score += knightScore[sq];
-        break;
-      case B:
-        score += bishopScore[sq];
-        break;
-      case R:
-        score += rookScore[sq];
-        break;
-      case K:
-        score += kingScore[sq];
-        break;
-
-        // evaluate black pieces
-      case p:
-        score -= pawnScore[FLIP(sq)];
-        break;
-      case n:
-        score -= knightScore[FLIP(sq)];
-        break;
-      case b:
-        score -= bishopScore[FLIP(sq)];
-        break;
-      case r:
-        score -= rookScore[FLIP(sq)];
-        break;
-      case k:
-        score -= kingScore[FLIP(sq)];
-        break;
-      }
-      popBit(bitboard, sq);
+                // evaluate black pieces
+            case (int)p:
+                openingScore -= PSQT::PSQTEval(Phase::OPENING, PieceTypes::PAWN, FLIP(sq));
+                endgameScore -= PSQT::PSQTEval(Phase::ENDGAME, PieceTypes::PAWN, FLIP(sq));
+                break;
+            case (int)n:
+                openingScore -= PSQT::PSQTEval(Phase::OPENING, PieceTypes::KNIGHT, FLIP(sq));
+                endgameScore -= PSQT::PSQTEval(Phase::ENDGAME, PieceTypes::KNIGHT, FLIP(sq));
+                break;
+            case (int)b:
+                openingScore -= PSQT::PSQTEval(Phase::OPENING, PieceTypes::BISHOP, FLIP(sq));
+                endgameScore -= PSQT::PSQTEval(Phase::ENDGAME, PieceTypes::BISHOP, FLIP(sq));
+                break;
+            case (int)r:
+                openingScore -= PSQT::PSQTEval(Phase::OPENING, PieceTypes::ROOK, FLIP(sq));
+                endgameScore -= PSQT::PSQTEval(Phase::ENDGAME, PieceTypes::ROOK, FLIP(sq));
+                break;
+            case (int)q:
+                openingScore -= PSQT::PSQTEval(Phase::OPENING, PieceTypes::QUEEN, FLIP(sq));
+                endgameScore -= PSQT::PSQTEval(Phase::ENDGAME, PieceTypes::QUEEN, FLIP(sq));
+                break;
+            case (int)k:
+                openingScore -= PSQT::PSQTEval(Phase::OPENING, PieceTypes::KING, FLIP(sq));
+                endgameScore -= PSQT::PSQTEval(Phase::ENDGAME, PieceTypes::KING, FLIP(sq));
+                break;
+            }
+            popBit(bitboard, sq);
+        }
     }
-  }
-  return (!board.side) ? score : -score;
+    // Linearly interpolate the opening and endgame scores
+    // and store it in the scores variable
+    int score = 0;
+    interpolateScores(phase, phaseScore, openingScore, endgameScore, score);
+
+    return (board.state.side == Color::WHITE) ? score : -score;
 }
 
-} // namespace Evaluate
+void interpolateScores(const Phase phase, const int phaseScore, const int openingScore,
+                      const int endgameScore, int& score) {
+    // Score interpolation
+    if (phase == Phase::MIDDLEGAME)
+        score = (openingScore * phaseScore + endgameScore * (OPENING_PHASE_SCORE - phaseScore)) /
+                OPENING_PHASE_SCORE;
+
+    else if (phase == Phase::OPENING)
+        score = openingScore;
+    else if (phase == Phase::ENDGAME)
+        score = endgameScore;
+}
+
+int getPhaseScore(const Board& board) {
+    /*
+        The game phase score of the game is derived from the pieces
+        of both sides (not counting pawns and kings) that are still
+        on the board. The full material starting position game phase
+        score is:
+        4 * knight material score in the opening +
+        4 * bishop material score in the opening +
+        4 * rook material score in the opening +
+        2 * queen material score in the opening
+    */
+    int whitePieceScore = 0, blackPieceScore = 0;
+    for (int piece = 1; piece <= 4; piece++) {
+        whitePieceScore +=
+            Bitboard::countBits(board.pos.pieces[piece]) * materialScore[(int)Phase::OPENING][piece];
+        blackPieceScore += Bitboard::countBits(board.pos.pieces[piece + 6]) *
+                           -materialScore[(int)Phase::OPENING][piece + 6];
+    }
+    return whitePieceScore + blackPieceScore;
+}
+} // namespace Eval

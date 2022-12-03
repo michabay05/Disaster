@@ -107,8 +107,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>C:\Users\micha\Projects\Disaster\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,6 +125,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,19 +135,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\attack.hpp" />
-    <ClInclude Include="src\bitboard.hpp" />
-    <ClInclude Include="src\board.hpp" />
-    <ClInclude Include="src\defs.hpp" />
-    <ClInclude Include="src\eval.hpp" />
-    <ClInclude Include="src\magics.hpp" />
-    <ClInclude Include="src\misc.hpp" />
-    <ClInclude Include="src\move.hpp" />
-    <ClInclude Include="src\perft.hpp" />
-    <ClInclude Include="src\search.hpp" />
-    <ClInclude Include="src\tt.hpp" />
-    <ClInclude Include="src\uci.hpp" />
-    <ClInclude Include="src\zobrist.hpp" />
+    <ClInclude Include="src\include\attack.hpp" />
+    <ClInclude Include="src\include\bitboard.hpp" />
+    <ClInclude Include="src\include\board.hpp" />
+    <ClInclude Include="src\include\defs.hpp" />
+    <ClInclude Include="src\include\eval.hpp" />
+    <ClInclude Include="src\include\magics.hpp" />
+    <ClInclude Include="src\include\misc.hpp" />
+    <ClInclude Include="src\include\move.hpp" />
+    <ClInclude Include="src\include\perft.hpp" />
+    <ClInclude Include="src\include\psqt.hpp" />
+    <ClInclude Include="src\include\search.hpp" />
+    <ClInclude Include="src\include\tt.hpp" />
+    <ClInclude Include="src\include\tt_eval.hpp" />
+    <ClInclude Include="src\include\uci.hpp" />
+    <ClInclude Include="src\include\zobrist.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\attack.cpp" />
@@ -157,10 +161,15 @@
     <ClCompile Include="src\misc.cpp" />
     <ClCompile Include="src\move.cpp" />
     <ClCompile Include="src\perft.cpp" />
+    <ClCompile Include="src\psqt.cpp" />
     <ClCompile Include="src\search.cpp" />
     <ClCompile Include="src\tt.cpp" />
+    <ClCompile Include="src\tt_eval.cpp" />
     <ClCompile Include="src\uci.cpp" />
     <ClCompile Include="src\zobrist.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\.clang-format" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

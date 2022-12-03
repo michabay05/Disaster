@@ -12,48 +12,44 @@ namespace Move {
 MoveList::MoveList() { list.fill(0); }
 
 void MoveList::add(const int move) {
-  list[count] = move;
-  count++;
+    list[count] = move;
+    count++;
 }
 
 // Returns index from move list, if move is found
-int MoveList::search(const int source, const int target,
-                     const int promoted) const {
-  for (int i = 0; i < count; i++) {
-    // Parse move info
-    int listMoveSource = getSource(list[i]);
-    int listMoveTarget = getTarget(list[i]);
-    int listMovePromoted = getPromoted(list[i]);
-    // Check if source and target match
-    if (listMoveSource == source && listMoveTarget == target &&
-        listMovePromoted == promoted)
-      // Return index of move from movelist, if true
-      return list[i];
-  }
-  return 0;
+int MoveList::search(const int source, const int target, const int promoted) const {
+    for (int i = 0; i < count; i++) {
+        // Parse move info
+        int listMoveSource = getSource(list[i]);
+        int listMoveTarget = getTarget(list[i]);
+        int listMovePromoted = getPromoted(list[i]);
+        // Check if source and target match
+        if (listMoveSource == source && listMoveTarget == target && listMovePromoted == promoted)
+            // Return index of move from movelist, if true
+            return list[i];
+    }
+    return 0;
 }
 void MoveList::printList() const {
-  printf("    Source   |   Target  |  Piece  |  Promoted  |  Capture  |  Two "
-         "Square Push  |  Enpassant  |  Castling\n");
-  printf("  "
-         "---------------------------------------------------------------------"
-         "--------------------------------------\n");
-  for (int i = 0; i < count; i++) {
-    printf("       %s    |    %s     |    %c    |     %c      |     %d     |   "
-           "      %d         |      %d      |     %d\n",
-           strCoords[getSource(list[i])].c_str(),
-           strCoords[getTarget(list[i])].c_str(), pieceStr[getPiece(list[i])],
-           pieceStr[getPromoted(list[i])], isCapture(list[i]),
-           isTwoSquarePush(list[i]), isEnpassant(list[i]), isCastling(list[i]));
-  }
-  printf("\n    Total number of moves: %d\n", count);
+    printf("    Source   |   Target  |  Piece  |  Promoted  |  Capture  |  Two "
+           "Square Push  |  Enpassant  |  Castling\n");
+    printf("  "
+           "---------------------------------------------------------------------"
+           "--------------------------------------\n");
+    for (int i = 0; i < count; i++) {
+        printf("       %s    |    %s     |    %c    |     %c      |     %d     |   "
+               "      %d         |      %d      |     %d\n",
+               strCoords[getSource(list[i])].c_str(), strCoords[getTarget(list[i])].c_str(),
+               pieceStr[getPiece(list[i])], pieceStr[getPromoted(list[i])], isCapture(list[i]),
+               isTwoSquarePush(list[i]), isEnpassant(list[i]), isCastling(list[i]));
+    }
+    std::cout << "\n    Total number of moves: %d\n" << count;
 }
 
-int encode(int source, int target, int piece, int promoted, bool isCapture,
-           bool isTwoSquarePush, bool isEnpassant, bool isCastling) {
-  return source | (target << 6) | (piece << 12) | (promoted << 16) |
-         (isCapture << 20) | (isTwoSquarePush << 21) | (isEnpassant << 22) |
-         (isCastling << 23);
+int encode(int source, int target, int piece, int promoted, bool isCapture, bool isTwoSquarePush,
+           bool isEnpassant, bool isCastling) {
+    return source | (target << 6) | (piece << 12) | (promoted << 16) | (isCapture << 20) |
+           (isTwoSquarePush << 21) | (isEnpassant << 22) | (isCastling << 23);
 }
 
 int getSource(const int move) { return move & 0x3F; }
@@ -63,8 +59,8 @@ int getTarget(const int move) { return (move & 0xFC0) >> 6; }
 int getPiece(const int move) { return (move & 0xF000) >> 12; }
 
 int getPromoted(const int move) {
-  int promoted = (move & 0xF0000) >> 16;
-  return promoted ? promoted : E;
+    int promoted = (move & 0xF0000) >> 16;
+    return promoted ? promoted : (int)Piece::E;
 }
 
 bool isCapture(const int move) { return move & 0x100000; }
@@ -76,438 +72,488 @@ bool isEnpassant(const int move) { return move & 0x400000; }
 bool isCastling(const int move) { return move & 0x800000; }
 
 std::string toString(const int move) {
-  std::string moveStr = strCoords[getSource(move)];
-  moveStr += strCoords[getTarget(move)];
-  int piece;
-  if ((piece = getPromoted(move)) != E)
-    moveStr += std::tolower(pieceStr[piece]);
-  return moveStr;
+    std::string moveStr = strCoords[getSource(move)];
+    moveStr += strCoords[getTarget(move)];
+    int piece;
+    if ((piece = getPromoted(move)) != (int)Piece::E)
+        moveStr += std::tolower(pieceStr[piece]);
+    return moveStr;
 }
 
-int parse(const std::string &moveStr, const Board &board) {
-  int source = SQ((8 - (moveStr[1] - '0')), (moveStr[0] - 'a'));
-  int target = SQ((8 - (moveStr[3] - '0')), (moveStr[2] - 'a'));
-  int promoted = E;
-  if (moveStr.length() == 5) {
-    promoted = (int)pieceStr.find(moveStr[4]);
-    if (ROW(target) == 0)
-      promoted %= 6;
-  }
-  MoveList mL;
-  generate(mL, board);
-  int searchedMove = mL.search(source, target, promoted);
-  return searchedMove;
-}
-
-void generate(MoveList &moveList, const Board &board) {
-  generatePawns(moveList, board);
-  generateKnights(moveList, board);
-  generateBishops(moveList, board);
-  generateRooks(moveList, board);
-  generateQueens(moveList, board);
-  generateKings(moveList, board);
-}
-
-void generatePawns(MoveList &moveList, const Board &board) {
-  /*
-          Differences:
-          bitboards,
-          promotionRank, homeRank
-  */
-  U64 bitboardCopy, attackCopy;
-  int promotionStart, direction, doublePushStart, piece;
-  int source, target;
-  // If side to move is white
-  if (!board.side) {
-    piece = P;
-    promotionStart = a7;
-    direction = SOUTH;
-    doublePushStart = a2;
-  }
-  // If side to move is black
-  else {
-    piece = p;
-    promotionStart = a2;
-    direction = NORTH;
-    doublePushStart = a7;
-  }
-
-  bitboardCopy = board.pieces[piece];
-
-  while (bitboardCopy) {
-    source = Bitboard::getLs1bIndex(bitboardCopy);
-    target = source + direction;
-    if ((!board.side ? target >= a8 : target <= h1) &&
-        !getBit(board.units[BOTH], target)) {
-      // Quiet moves
-      // Promotion
-      if ((source >= promotionStart) && (source <= promotionStart + 7)) {
-        moveList.add(
-            encode(source, target, piece, (!board.side ? Q : q), 0, 0, 0, 0));
-        moveList.add(
-            encode(source, target, piece, (!board.side ? R : r), 0, 0, 0, 0));
-        moveList.add(
-            encode(source, target, piece, (!board.side ? B : b), 0, 0, 0, 0));
-        moveList.add(
-            encode(source, target, piece, (!board.side ? N : n), 0, 0, 0, 0));
-      } else {
-        moveList.add(encode(source, target, piece, E, 0, 0, 0, 0));
-        if ((source >= doublePushStart && source <= doublePushStart + 7) &&
-            !getBit(board.units[BOTH], target + direction))
-          moveList.add(
-              encode(source, target + direction, piece, E, 0, 1, 0, 0));
-      }
+int parse(const std::string& moveStr, const Board& board) {
+    int source = SQ((8 - (moveStr[1] - '0')), (moveStr[0] - 'a'));
+    int target = SQ((8 - (moveStr[3] - '0')), (moveStr[2] - 'a'));
+    int promoted = (int)Piece::E;
+    if (moveStr.length() == 5) {
+        promoted = (int)pieceStr.find(moveStr[4]);
+        if (ROW(target) == 0)
+            promoted %= 6;
     }
-    // Capture moves
-    attackCopy =
-        Attack::pawnAttacks[board.side][source] & board.units[board.side ^ 1];
-    while (attackCopy) {
-      target = Bitboard::getLs1bIndex(attackCopy);
-      // Capture move
-      if ((source >= promotionStart) && (source <= promotionStart + 7)) {
-        moveList.add(
-            encode(source, target, piece, (!board.side ? Q : q), 1, 0, 0, 0));
-        moveList.add(
-            encode(source, target, piece, (!board.side ? R : r), 1, 0, 0, 0));
-        moveList.add(
-            encode(source, target, piece, (!board.side ? B : b), 1, 0, 0, 0));
-        moveList.add(
-            encode(source, target, piece, (!board.side ? N : n), 1, 0, 0, 0));
-      } else
-        moveList.add(encode(source, target, piece, E, 1, 0, 0, 0));
-      // Remove 'source' bit
-      popBit(attackCopy, target);
-    }
-    // Generate enpassant capture
-    if (board.enpassant != noSq) {
-      U64 enpassCapture =
-          Attack::pawnAttacks[board.side][source] & (1ULL << board.enpassant);
-      if (enpassCapture) {
-        int enpassTarget = Bitboard::getLs1bIndex(enpassCapture);
-        moveList.add(encode(source, enpassTarget, piece, E, 1, 0, 1, 0));
-      }
-    }
-    // Remove bits
-    popBit(bitboardCopy, source);
-  }
+    MoveList mL;
+    generate(mL, board);
+    int searchedMove = mL.search(source, target, promoted);
+    return searchedMove;
 }
 
-void generateKnights(MoveList &moveList, const Board &board) {
-  int source, target, piece = !board.side ? N : n;
-  U64 bitboardCopy = board.pieces[piece], attackCopy;
-  while (bitboardCopy) {
-    source = Bitboard::getLs1bIndex(bitboardCopy);
-
-    attackCopy = Attack::knightAttacks[source] &
-                 (!board.side ? ~board.units[WHITE] : ~board.units[BLACK]);
-    while (attackCopy) {
-      target = Bitboard::getLs1bIndex(attackCopy);
-      if (getBit(board.units[!board.side ? BLACK : WHITE], target))
-        moveList.add(encode(source, target, piece, E, 1, 0, 0, 0));
-      else
-        moveList.add(encode(source, target, piece, E, 0, 0, 0, 0));
-      popBit(attackCopy, target);
-    }
-    popBit(bitboardCopy, source);
-  }
+void generate(MoveList& moveList, const Board& board) {
+    generatePawns(moveList, board);
+    generateKnights(moveList, board);
+    generateBishops(moveList, board);
+    generateRooks(moveList, board);
+    generateQueens(moveList, board);
+    generateKings(moveList, board);
 }
 
-void generateBishops(MoveList &moveList, const Board &board) {
-  int source, target, piece = !board.side ? B : b;
-  U64 bitboardCopy = board.pieces[piece], attackCopy;
-  while (bitboardCopy) {
-    source = Bitboard::getLs1bIndex(bitboardCopy);
-
-    attackCopy = Magics::getBishopAttack(source, board.units[BOTH]) &
-                 (!board.side ? ~board.units[WHITE] : ~board.units[BLACK]);
-    while (attackCopy) {
-      target = Bitboard::getLs1bIndex(attackCopy);
-      if (getBit(board.units[!board.side ? BLACK : WHITE], target))
-        moveList.add(encode(source, target, piece, E, 1, 0, 0, 0));
-      else
-        moveList.add(encode(source, target, piece, E, 0, 0, 0, 0));
-      popBit(attackCopy, target);
+void generatePawns(MoveList& moveList, const Board& board) {
+    /*
+                    Differences:
+                    bitboards,
+                    promotionRank, homeRank
+    */
+    uint64_t bitboardCopy, attackCopy;
+    int promotionStart, direction, doublePushStart, piece;
+    int source, target;
+    // If side to move is white
+    if (board.state.side == Color::WHITE) {
+        piece = (int)Piece::P;
+        promotionStart = (int)Sq::a7;
+        direction = (int)Direction::SOUTH;
+        doublePushStart = (int)Sq::a2;
     }
-    popBit(bitboardCopy, source);
-  }
+    // If side to move is black
+    else {
+        piece = (int)Piece::p;
+        promotionStart = (int)Sq::a2;
+        direction = (int)Direction::NORTH;
+        doublePushStart = (int)Sq::a7;
+    }
+
+    bitboardCopy = board.pos.pieces[piece];
+
+    while (bitboardCopy) {
+        source = Bitboard::getLs1bIndex(bitboardCopy);
+        target = source + direction;
+        if ((board.state.side == Color::WHITE ? target >= (int)Sq::a8 : target <= (int)Sq::h1) &&
+            !getBit(board.pos.units[(int)Color::BOTH], target)) {
+            // Quiet moves
+            // Promotion
+            if ((source >= promotionStart) && (source <= promotionStart + 7)) {
+                moveList.add(
+                    encode(source, target, piece,
+                           (board.state.side == Color::WHITE ? (int)Piece::Q : (int)Piece::q), 0, 0,
+                           0, 0));
+                moveList.add(
+                    encode(source, target, piece,
+                           (board.state.side == Color::WHITE ? (int)Piece::R : (int)Piece::r), 0, 0,
+                           0, 0));
+                moveList.add(
+                    encode(source, target, piece,
+                           (board.state.side == Color::WHITE ? (int)Piece::B : (int)Piece::b), 0, 0,
+                           0, 0));
+                moveList.add(
+                    encode(source, target, piece,
+                           (board.state.side == Color::WHITE ? (int)Piece::N : (int)Piece::n), 0, 0,
+                           0, 0));
+            } else {
+                moveList.add(encode(source, target, piece, (int)Piece::E, 0, 0, 0, 0));
+                if ((source >= doublePushStart && source <= doublePushStart + 7) &&
+                    !getBit(board.pos.units[(int)Color::BOTH], target + direction))
+                    moveList.add(
+                        encode(source, target + direction, piece, (int)Piece::E, 0, 1, 0, 0));
+            }
+        }
+        // Capture moves
+        attackCopy = Attack::pawnAttacks[(int)board.state.side][source] &
+                     board.pos.units[(int)board.state.side ^ 1];
+        while (attackCopy) {
+            target = Bitboard::getLs1bIndex(attackCopy);
+            // Capture move
+            if ((source >= promotionStart) && (source <= promotionStart + 7)) {
+                moveList.add(
+                    encode(source, target, piece,
+                           (board.state.side == Color::WHITE ? (int)Piece::Q : (int)Piece::q), 1, 0,
+                           0, 0));
+                moveList.add(
+                    encode(source, target, piece,
+                           (board.state.side == Color::WHITE ? (int)Piece::R : (int)Piece::r), 1, 0,
+                           0, 0));
+                moveList.add(
+                    encode(source, target, piece,
+                           (board.state.side == Color::WHITE ? (int)Piece::B : (int)Piece::b), 1, 0,
+                           0, 0));
+                moveList.add(
+                    encode(source, target, piece,
+                           (board.state.side == Color::WHITE ? (int)Piece::N : (int)Piece::n), 1, 0,
+                           0, 0));
+            } else
+                moveList.add(encode(source, target, piece, (int)Piece::E, 1, 0, 0, 0));
+            // Remove 'source' bit
+            popBit(attackCopy, target);
+        }
+        // Generate enpassant capture
+        if (board.state.enpassant != Sq::noSq) {
+            uint64_t enpassCapture = Attack::pawnAttacks[(int)board.state.side][source] &
+                                     (1ULL << (int)board.state.enpassant);
+            if (enpassCapture) {
+                int enpassTarget = Bitboard::getLs1bIndex(enpassCapture);
+                moveList.add(encode(source, enpassTarget, piece, (int)Piece::E, 1, 0, 1, 0));
+            }
+        }
+        // Remove bits
+        popBit(bitboardCopy, source);
+    }
 }
 
-void generateRooks(MoveList &moveList, const Board &board) {
-  int source, target, piece = !board.side ? R : r;
-  U64 bitboardCopy = board.pieces[piece], attackCopy;
-  while (bitboardCopy) {
-    source = Bitboard::getLs1bIndex(bitboardCopy);
+void generateKnights(MoveList& moveList, const Board& board) {
+    int source, target, piece = board.state.side == Color::WHITE ? (int)Piece::N : (int)Piece::n;
+    uint64_t bitboardCopy = board.pos.pieces[piece], attackCopy;
+    while (bitboardCopy) {
+        source = Bitboard::getLs1bIndex(bitboardCopy);
 
-    attackCopy = Magics::getRookAttack(source, board.units[BOTH]) &
-                 (!board.side ? ~board.units[WHITE] : ~board.units[BLACK]);
-    while (attackCopy) {
-      target = Bitboard::getLs1bIndex(attackCopy);
-      if (getBit(board.units[!board.side ? BLACK : WHITE], target))
-        moveList.add(encode(source, target, piece, E, 1, 0, 0, 0));
-      else
-        moveList.add(encode(source, target, piece, E, 0, 0, 0, 0));
-      popBit(attackCopy, target);
+        attackCopy = Attack::knightAttacks[source] &
+                     (board.state.side == Color::WHITE ? ~board.pos.units[(int)Color::WHITE]
+                                                       : ~board.pos.units[(int)Color::BLACK]);
+        while (attackCopy) {
+            target = Bitboard::getLs1bIndex(attackCopy);
+            if (getBit(board.pos.units[board.state.side == Color::WHITE ? (int)Color::BLACK
+                                                                        : (int)Color::WHITE],
+                       target))
+                moveList.add(encode(source, target, piece, (int)Piece::E, 1, 0, 0, 0));
+            else
+                moveList.add(encode(source, target, piece, (int)Piece::E, 0, 0, 0, 0));
+            popBit(attackCopy, target);
+        }
+        popBit(bitboardCopy, source);
     }
-    popBit(bitboardCopy, source);
-  }
 }
 
-void generateQueens(MoveList &moveList, const Board &board) {
-  int source, target, piece = !board.side ? Q : q;
-  U64 bitboardCopy = board.pieces[piece], attackCopy;
-  while (bitboardCopy) {
-    source = Bitboard::getLs1bIndex(bitboardCopy);
+void generateBishops(MoveList& moveList, const Board& board) {
+    int source, target, piece = board.state.side == Color::WHITE ? (int)Piece::B : (int)Piece::b;
+    uint64_t bitboardCopy = board.pos.pieces[piece], attackCopy;
+    while (bitboardCopy) {
+        source = Bitboard::getLs1bIndex(bitboardCopy);
 
-    attackCopy = Magics::getQueenAttack(source, board.units[BOTH]) &
-                 (!board.side ? ~board.units[WHITE] : ~board.units[BLACK]);
-    while (attackCopy) {
-      target = Bitboard::getLs1bIndex(attackCopy);
-      if (getBit(board.units[!board.side ? BLACK : WHITE], target))
-        moveList.add(encode(source, target, piece, E, 1, 0, 0, 0));
-      else
-        moveList.add(encode(source, target, piece, E, 0, 0, 0, 0));
-      popBit(attackCopy, target);
+        attackCopy = Magics::getBishopAttack(source, board.pos.units[(int)Color::BOTH]) &
+                     (board.state.side == Color::WHITE ? ~board.pos.units[(int)Color::WHITE]
+                                                       : ~board.pos.units[(int)Color::BLACK]);
+        while (attackCopy) {
+            target = Bitboard::getLs1bIndex(attackCopy);
+            if (getBit(board.pos.units[board.state.side == Color::WHITE ? (int)Color::BLACK
+                                                                        : (int)Color::WHITE],
+                       target))
+                moveList.add(encode(source, target, piece, (int)Piece::E, 1, 0, 0, 0));
+            else
+                moveList.add(encode(source, target, piece, (int)Piece::E, 0, 0, 0, 0));
+            popBit(attackCopy, target);
+        }
+        popBit(bitboardCopy, source);
     }
-    popBit(bitboardCopy, source);
-  }
 }
 
-void generateKings(MoveList &moveList, const Board &board) {
-  /* NOTE: Checks aren't handled by the move generator,
-                    it's handled by the make move function.
-  */
-  int source, target, piece = !board.side ? K : k;
-  U64 bitboard = board.pieces[piece], attack;
-  while (bitboard != 0) {
-    source = Bitboard::getLs1bIndex(bitboard);
+void generateRooks(MoveList& moveList, const Board& board) {
+    int source, target, piece = board.state.side == Color::WHITE ? (int)Piece::R : (int)Piece::r;
+    uint64_t bitboardCopy = board.pos.pieces[piece], attackCopy;
+    while (bitboardCopy) {
+        source = Bitboard::getLs1bIndex(bitboardCopy);
 
-    attack = Attack::kingAttacks[source] &
-             (!board.side ? ~board.units[WHITE] : ~board.units[BLACK]);
-    while (attack != 0) {
-      target = Bitboard::getLs1bIndex(attack);
-
-      if (getBit((board.side == 0 ? board.units[BLACK] : board.units[WHITE]),
-                 target))
-        moveList.add(encode(source, target, piece, E, 1, 0, 0, 0));
-      else
-        moveList.add(encode(source, target, piece, E, 0, 0, 0, 0));
-
-      // Remove target bit to move onto the next bit
-      popBit(attack, target);
+        attackCopy = Magics::getRookAttack(source, board.pos.units[(int)Color::BOTH]) &
+                     (board.state.side == Color::WHITE ? ~board.pos.units[(int)Color::WHITE]
+                                                       : ~board.pos.units[(int)Color::BLACK]);
+        while (attackCopy) {
+            target = Bitboard::getLs1bIndex(attackCopy);
+            if (getBit(board.pos.units[board.state.side == Color::WHITE ? (int)Color::BLACK
+                                                                        : (int)Color::WHITE],
+                       target))
+                moveList.add(encode(source, target, piece, (int)Piece::E, 1, 0, 0, 0));
+            else
+                moveList.add(encode(source, target, piece, (int)Piece::E, 0, 0, 0, 0));
+            popBit(attackCopy, target);
+        }
+        popBit(bitboardCopy, source);
     }
-    // Remove source bit to move onto the next bit
-    popBit(bitboard, source);
-  }
-  // Generate castling moves
-  if (!board.side)
-    genWhiteCastling(moveList, board);
-  else
-    genBlackCastling(moveList, board);
 }
 
-void genWhiteCastling(MoveList &moveList, const Board &board) {
-  if (!board.side) // WHITE
-  {
+void generateQueens(MoveList& moveList, const Board& board) {
+    int source, target, piece = board.state.side == Color::WHITE ? (int)Piece::Q : (int)Piece::q;
+    uint64_t bitboardCopy = board.pos.pieces[piece], attackCopy;
+    while (bitboardCopy) {
+        source = Bitboard::getLs1bIndex(bitboardCopy);
+
+        attackCopy = Magics::getQueenAttack(source, board.pos.units[(int)Color::BOTH]) &
+                     (board.state.side == Color::WHITE ? ~board.pos.units[(int)Color::WHITE]
+                                                       : ~board.pos.units[(int)Color::BLACK]);
+        while (attackCopy) {
+            target = Bitboard::getLs1bIndex(attackCopy);
+            if (getBit(board.pos.units[board.state.side == Color::WHITE ? (int)Color::BLACK
+                                                                        : (int)Color::WHITE],
+                       target))
+                moveList.add(encode(source, target, piece, (int)Piece::E, 1, 0, 0, 0));
+            else
+                moveList.add(encode(source, target, piece, (int)Piece::E, 0, 0, 0, 0));
+            popBit(attackCopy, target);
+        }
+        popBit(bitboardCopy, source);
+    }
+}
+
+void generateKings(MoveList& moveList, const Board& board) {
+    /* NOTE: Checks aren't handled by the move generator,
+                                      it's handled by the make move function.
+    */
+    int source, target, piece = board.state.side == Color::WHITE ? (int)Piece::K : (int)Piece::k;
+    uint64_t bitboard = board.pos.pieces[piece], attack;
+    while (bitboard != 0) {
+        source = Bitboard::getLs1bIndex(bitboard);
+
+        attack = Attack::kingAttacks[source] &
+                 (board.state.side == Color::WHITE ? ~board.pos.units[(int)Color::WHITE]
+                                                   : ~board.pos.units[(int)Color::BLACK]);
+        while (attack != 0) {
+            target = Bitboard::getLs1bIndex(attack);
+
+            if (getBit((board.pos.units[board.state.side == Color::WHITE ? (int)Color::BLACK
+                                                                         : (int)Color::WHITE]),
+                       target))
+                moveList.add(encode(source, target, piece, (int)Piece::E, 1, 0, 0, 0));
+            else
+                moveList.add(encode(source, target, piece, (int)Piece::E, 0, 0, 0, 0));
+
+            // Remove target bit to move onto the next bit
+            popBit(attack, target);
+        }
+        // Remove source bit to move onto the next bit
+        popBit(bitboard, source);
+    }
+    // Generate castling moves
+    if (board.state.side == Color::WHITE)
+        genWhiteCastling(moveList, board);
+    else
+        genBlackCastling(moveList, board);
+}
+
+void genWhiteCastling(MoveList& moveList, const Board& board) {
+    if (board.state.side == Color::WHITE) // WHITE
+    {
+        // Kingside castling
+        if (getBit(board.state.castling, (int)CastlingRights::wk)) {
+            // Check if path is obstructed
+            if (!getBit(board.pos.units[(int)Color::BOTH], (int)Sq::f1) &&
+                !getBit(board.pos.units[(int)Color::BOTH], (int)Sq::g1)) {
+                // Is e1 or f1 attacked by a black piece?
+                if (!isSquareAttacked(Color::BLACK, (int)Sq::e1, board.pos) &&
+                    !isSquareAttacked(Color::BLACK, (int)Sq::f1, board.pos))
+                    moveList.add(
+                        encode((int)Sq::e1, (int)Sq::g1, (int)Piece::K, (int)Piece::E, 0, 0, 0, 1));
+            }
+        }
+        // Queenside castling
+        if (getBit(board.state.castling, (int)CastlingRights::wq)) {
+            // Check if path is obstructed
+            if (!getBit(board.pos.units[(int)Color::BOTH], (int)Sq::b1) &&
+                !getBit(board.pos.units[(int)Color::BOTH], (int)Sq::c1) &&
+                !getBit(board.pos.units[(int)Color::BOTH], (int)Sq::d1)) {
+                // Is d1 or e1 attacked by a black piece?
+                if (!isSquareAttacked(Color::BLACK, (int)Sq::d1, board.pos) &&
+                    !isSquareAttacked(Color::BLACK, (int)Sq::e1, board.pos))
+                    moveList.add(
+                        encode((int)Sq::e1, (int)Sq::c1, (int)Piece::K, (int)Piece::E, 0, 0, 0, 1));
+            }
+        }
+    }
+}
+void genBlackCastling(MoveList& moveList, const Board& board) {
     // Kingside castling
-    if (getBit(board.castling, wk)) {
-      // Check if path is obstructed
-      if (!getBit(board.units[BOTH], f1) && !getBit(board.units[BOTH], g1)) {
-        // Is e1 or f1 attacked by a black piece?
-        if (!isSquareAttacked(BLACK, e1, board) &&
-            !isSquareAttacked(BLACK, f1, board))
-          moveList.add(encode(e1, g1, K, E, 0, 0, 0, 1));
-      }
+    if (getBit(board.state.castling, (int)CastlingRights::bk)) {
+        // Check if path is obstructed
+        if (!getBit(board.pos.units[(int)Color::BOTH], (int)Sq::f8) &&
+            !getBit(board.pos.units[(int)Color::BOTH], (int)Sq::g8)) {
+            // Is e8 or f8 attacked by a white piece?
+            if (!isSquareAttacked(Color::WHITE, (int)Sq::e8, board.pos) &&
+                !isSquareAttacked(Color::WHITE, (int)Sq::f8, board.pos))
+                moveList.add(
+                    encode((int)Sq::e8, (int)Sq::g8, (int)Piece::k, (int)Piece::E, 0, 0, 0, 1));
+        }
     }
     // Queenside castling
-    if (getBit(board.castling, wq)) {
-      // Check if path is obstructed
-      if (!getBit(board.units[BOTH], b1) && !getBit(board.units[BOTH], c1) &&
-          !getBit(board.units[BOTH], d1)) {
-        // Is d1 or e1 attacked by a black piece?
-        if (!isSquareAttacked(BLACK, d1, board) &&
-            !isSquareAttacked(BLACK, e1, board))
-          moveList.add(encode(e1, c1, K, E, 0, 0, 0, 1));
-      }
-    }
-  }
-}
-void genBlackCastling(MoveList &moveList, const Board &board) {
-  // Kingside castling
-  if (getBit(board.castling, bk)) {
-    // Check if path is obstructed
-    if (!getBit(board.units[BOTH], f8) && !getBit(board.units[BOTH], g8)) {
-      // Is e8 or f8 attacked by a white piece?
-      if (!isSquareAttacked(WHITE, e8, board) &&
-          !isSquareAttacked(WHITE, f8, board))
-        moveList.add(encode(e8, g8, k, E, 0, 0, 0, 1));
-    }
-  }
-  // Queenside castling
-  if (getBit(board.castling, bq)) {
-    // Check if path is obstructed
-    if (!getBit(board.units[BOTH], b8) && !getBit(board.units[BOTH], c8) &&
-        !getBit(board.units[BOTH], d8)) {
-      // Is d8 or e8 attacked by a white piece?
-      if (!isSquareAttacked(WHITE, d8, board) &&
-          !isSquareAttacked(WHITE, e8, board))
-        moveList.add(encode(e8, c8, k, E, 0, 0, 0, 1));
-    }
-  }
-}
-
-bool make(Board *main, const int move, MoveType moveFlag) {
-  if (moveFlag == allMoves) {
-    Board clone = *main;
-
-    // Parse move information
-    int source = getSource(move);
-    int target = getTarget(move);
-    int piece = getPiece(move);
-    int promoted = getPromoted(move);
-    bool capture = isCapture(move);
-    bool twoSquarePush = isTwoSquarePush(move);
-    bool enpassant = isEnpassant(move);
-    bool castling = isCastling(move);
-
-    // Remove piece from 'source' and place on 'target'
-    popBit(main->pieces[piece], source);
-    Zobrist::togglePiece(*main, piece, source);
-
-    setBit(main->pieces[piece], target);
-    Zobrist::togglePiece(*main, piece, target);
-
-    // If capture, remove piece of opponent bitboard
-    if (capture) {
-      for (int bbPiece = (!main->side ? p : P);
-           bbPiece <= (!main->side ? k : K); bbPiece++) {
-        if (getBit(main->pieces[bbPiece], target)) {
-          popBit(main->pieces[bbPiece], target);
-          Zobrist::togglePiece(*main, bbPiece, target);
-          break;
+    if (getBit(board.state.castling, (int)CastlingRights::bq)) {
+        // Check if path is obstructed
+        if (!getBit(board.pos.units[(int)Color::BOTH], (int)Sq::b8) &&
+            !getBit(board.pos.units[(int)Color::BOTH], (int)Sq::c8) &&
+            !getBit(board.pos.units[(int)Color::BOTH], (int)Sq::d8)) {
+            // Is d8 or e8 attacked by a white piece?
+            if (!isSquareAttacked(Color::WHITE, (int)Sq::d8, board.pos) &&
+                !isSquareAttacked(Color::WHITE, (int)Sq::e8, board.pos))
+                moveList.add(
+                    encode((int)Sq::e8, (int)Sq::c8, (int)Piece::k, (int)Piece::E, 0, 0, 0, 1));
         }
-      }
     }
+}
 
-    // Promotion move
-    if (promoted != E) {
-      popBit(main->pieces[piece], target);
-      Zobrist::togglePiece(*main, piece, target);
+bool make(Board* main, const int move, MoveType moveFlag) {
+    if (moveFlag == MoveType::allMoves) {
+        Board clone = *main;
 
-      setBit(main->pieces[promoted], target);
-      Zobrist::togglePiece(*main, promoted, target);
-    }
+        // Parse move information
+        int source = getSource(move);
+        int target = getTarget(move);
+        int piece = getPiece(move);
+        int promoted = getPromoted(move);
+        bool capture = isCapture(move);
+        bool twoSquarePush = isTwoSquarePush(move);
+        bool enpassant = isEnpassant(move);
+        bool castling = isCastling(move);
 
-    // Enpassant capture
-    if (enpassant) {
-      // If white to move
-      if (!main->side) {
-        popBit(main->pieces[p], target + NORTH);
-        Zobrist::togglePiece(*main, p, target + NORTH);
-      } else {
-        popBit(main->pieces[P], target + SOUTH);
-        Zobrist::togglePiece(*main, P, target + SOUTH);
-      }
-    }
-    if (main->enpassant != noSq)
-      Zobrist::toggleEnpass(*main, main->enpassant);
+        // Remove piece from 'source' and place on 'target'
+        popBit(main->pos.pieces[piece], source);
+        Zobrist::togglePiece(*main, piece, source);
 
-    // Reset enpassant, regardless of an enpassant capture
-    main->enpassant = noSq;
+        setBit(main->pos.pieces[piece], target);
+        Zobrist::togglePiece(*main, piece, target);
 
-    // Two Square Push move
-    if (twoSquarePush) {
-      if (!main->side)
-        main->enpassant = target + NORTH;
-      else
-        main->enpassant = target + SOUTH;
-      Zobrist::toggleEnpass(*main, main->enpassant);
-    }
+        if (piece % 6 == (int)PieceTypes::PAWN) {
+            Zobrist::togglePawn(*main, piece == (int)Piece::P, source);
+            Zobrist::togglePawn(*main, piece == (int)Piece::P, target);
+        }
 
-    // Castling
-    if (castling) {
-      switch (target) {
-      case g1:
-        popBit(main->pieces[R], h1);
-        Zobrist::togglePiece(*main, R, h1);
+        // If capture, remove piece of opponent bitboard
+        if (capture) {
+            for (int bbPiece = (main->state.side == Color::WHITE ? (int)Piece::p : (int)Piece::P);
+                 bbPiece <= (main->state.side == Color::WHITE ? (int)Piece::k : (int)Piece::K);
+                 bbPiece++) {
+                if (getBit(main->pos.pieces[bbPiece], target)) {
+                    popBit(main->pos.pieces[bbPiece], target);
+                    Zobrist::togglePiece(*main, bbPiece, target);
 
-        setBit(main->pieces[R], f1);
-        Zobrist::togglePiece(*main, R, f1);
-        break;
-      case c1:
-        popBit(main->pieces[R], a1);
-        Zobrist::togglePiece(*main, R, a1);
+                    if (bbPiece % 6 == (int)PieceTypes::PAWN) {
+                        Zobrist::togglePawn(*main, bbPiece == (int)Piece::P, target);
+                    }
+                    break;
+                }
+            }
+        }
 
-        setBit(main->pieces[R], d1);
-        Zobrist::togglePiece(*main, R, d1);
-        break;
-      case g8:
-        popBit(main->pieces[r], h8);
-        Zobrist::togglePiece(*main, r, h8);
+        // Promotion move
+        if (promoted != (int)Piece::E) {
+            popBit(main->pos.pieces[piece], target);
+            Zobrist::togglePiece(*main, piece, target);
+            Zobrist::togglePawn(*main, piece, target);
 
-        setBit(main->pieces[r], f8);
-        Zobrist::togglePiece(*main, r, f8);
-        break;
-      case c8:
-        popBit(main->pieces[r], a8);
-        Zobrist::togglePiece(*main, r, a8);
+            setBit(main->pos.pieces[promoted], target);
+            Zobrist::togglePiece(*main, promoted, target);
+        }
 
-        setBit(main->pieces[r], d8);
-        Zobrist::togglePiece(*main, r, d8);
-        break;
-      }
-    }
-    Zobrist::toggleCastling(*main, main->castling);
+        // Enpassant capture
+        if (enpassant) {
+            // If white to move
+            if (main->state.side == Color::WHITE) {
+                popBit(main->pos.pieces[(int)Piece::p], target + (int)Direction::NORTH);
+                Zobrist::togglePiece(*main, (int)Piece::p, target + (int)Direction::NORTH);
+                // TODO: check to see if I need to hash enpassant to pawn key
+                Zobrist::togglePawn(*main, false, target + (int)Direction::NORTH);
+            } else {
+                popBit(main->pos.pieces[(int)Piece::P], target + (int)Direction::SOUTH);
+                Zobrist::togglePiece(*main, (int)Piece::P, target + (int)Direction::SOUTH);
+                Zobrist::togglePawn(*main, true, target + (int)Direction::SOUTH);
+            }
+        }
+        if (main->state.enpassant != Sq::noSq)
+            Zobrist::toggleEnpass(*main, (int)main->state.enpassant);
 
-    // Update castling rights
-    main->castling &= castlingRights[source];
-    main->castling &= castlingRights[target];
-    Zobrist::toggleCastling(*main, main->castling);
+        // Reset enpassant, regardless of an enpassant capture
+        main->state.enpassant = Sq::noSq;
 
-    // Update units (or occupancies)
-    main->updateUnits();
+        // Two Square Push move
+        if (twoSquarePush) {
+            if (main->state.side == Color::WHITE)
+                main->state.enpassant = (Sq)(target + (int)Direction::NORTH);
+            else
+                main->state.enpassant = (Sq)(target + (int)Direction::SOUTH);
+            Zobrist::toggleEnpass(*main, (int)main->state.enpassant);
+        }
 
-    // Change side
-    main->side ^= 1;
-    Zobrist::toggleSide(*main);
+        // Castling
+        if (castling) {
+            switch (target) {
+            case (int)Sq::g1:
+                popBit(main->pos.pieces[(int)Piece::R], (int)Sq::h1);
+                Zobrist::togglePiece(*main, (int)Piece::R, (int)Sq::h1);
 
-    /* ============= FOR DEBUG PURPOSES ONLY ===============*/
-    U64 keyFromScratch = Zobrist::genKey(*main);
-    U64 lockFromScratch = Zobrist::genLock(*main);
-    if (main->hashKey != keyFromScratch) {
-      printf("\nBoard.MakeMove(%s)\n", toString(move).c_str());
-      main->display();
-      printf("Key should've been 0x%llx instead of 0x%llx\n", keyFromScratch,
-             main->hashKey);
-      std::exit(0);
-    }
-    if (main->hashLock != lockFromScratch) {
-      printf("\nBoard.MakeMove(%s)\n", toString(move).c_str());
-      printf("Lock should've been 0x%llx instead of 0x%llx\n", main->hashLock,
-             lockFromScratch);
-    }
-    /*============= FOR DEBUG PURPOSES ONLY =============== */
+                setBit(main->pos.pieces[(int)Piece::R], (int)Sq::f1);
+                Zobrist::togglePiece(*main, (int)Piece::R, (int)Sq::f1);
+                break;
+            case (int)Sq::c1:
+                popBit(main->pos.pieces[(int)Piece::R], (int)Sq::a1);
+                Zobrist::togglePiece(*main, (int)Piece::R, (int)Sq::a1);
 
-    // Check if king is in check
-    if (isSquareAttacked(
-            main->side,
-            (Bitboard::getLs1bIndex(main->pieces[!main->side ? k : K])),
-            *main)) {
-      // Restore board and return false
-      *main = clone;
-      return false;
+                setBit(main->pos.pieces[(int)Piece::R], (int)Sq::d1);
+                Zobrist::togglePiece(*main, (int)Piece::R, (int)Sq::d1);
+                break;
+            case (int)Sq::g8:
+                popBit(main->pos.pieces[(int)Piece::r], (int)Sq::h8);
+                Zobrist::togglePiece(*main, (int)Piece::r, (int)Sq::h8);
+
+                setBit(main->pos.pieces[(int)Piece::r], (int)Sq::f8);
+                Zobrist::togglePiece(*main, (int)Piece::r, (int)Sq::f8);
+                break;
+            case (int)Sq::c8:
+                popBit(main->pos.pieces[(int)Piece::r], (int)Sq::a8);
+                Zobrist::togglePiece(*main, (int)Piece::r, (int)Sq::a8);
+
+                setBit(main->pos.pieces[(int)Piece::r], (int)Sq::d8);
+                Zobrist::togglePiece(*main, (int)Piece::r, (int)Sq::d8);
+                break;
+            }
+        }
+        Zobrist::toggleCastling(*main, main->state.castling);
+
+        // Update castling rights
+        main->state.castling &= castlingRights[source];
+        main->state.castling &= castlingRights[target];
+        Zobrist::toggleCastling(*main, main->state.castling);
+
+        // Update units (or occupancies)
+        main->updateUnits();
+
+        // Change side
+        main->state.side = main->state.side ^ 1;
+        Zobrist::toggleSide(*main);
+        Zobrist::togglePawnSide(*main);
+
+        /* ============= FOR DEBUG PURPOSES ONLY ===============
+        printf("\nInside make going to go into generation...\n");
+        uint64_t keyFromScratch = Zobrist::genPawnKey(*main);
+        if (main->state.pawnKey != keyFromScratch) {
+                printf("\nBoard.MakeMove(%s)\n", toString(move).c_str());
+                main->state.display();
+                printf("Key should've been 0x%llx instead of 0x%llx\n", keyFromScratch,
+                        main->state.pawnKey);
+                std::exit(0);
+        }
+        /*============= FOR DEBUG PURPOSES ONLY =============== */
+
+        // Check if king is in check
+        if (isSquareAttacked(
+                main->state.side,
+                (Bitboard::getLs1bIndex(
+                    main->pos
+                        .pieces[main->state.side == Color::WHITE ? (int)Piece::k : (int)Piece::K])),
+                main->pos)) {
+            // Restore board and return false
+            *main = clone;
+            return false;
+        } else {
+            main->state.fullMoves++;
+            // Move is legal and was made, return true
+            return true;
+        }
+
     } else {
-      main->fullMoves++;
-      // Move is legal and was made, return true
-      return true;
+        // If capture, recall make() and make move
+        if (isCapture(move))
+            return make(main, move, MoveType::allMoves);
+        // If not capture, don't make move
+        return false;
     }
-
-  } else {
-    // If capture, recall make() and make move
-    if (isCapture(move))
-      return make(main, move, MoveType::allMoves);
-    // If not capture, don't make move
-    return false;
-  }
 }
 
 } // namespace Move

@@ -4,30 +4,30 @@
 #include "misc.hpp"
 
 namespace Zobrist {
-std::array<std::array<U64, 64>, 12> pieceKeys;
-std::array<U64, 64> enpassKeys;
-std::array<U64, 16> castlingKeys;
-U64 sideKey;
+std::array<std::array<uint64_t, 64>, 12> pieceKeys;
+std::array<uint64_t, 64> enpassKeys;
+std::array<uint64_t, 16> castlingKeys;
+uint64_t sideKey;
 
-std::array<std::array<U64, 64>, 12> pieceLocks;
-std::array<U64, 64> enpassLocks;
-std::array<U64, 16> castlingLocks;
-U64 sideLock;
+std::array<std::array<uint64_t, 64>, 12> pieceLocks;
+std::array<uint64_t, 64> enpassLocks;
+std::array<uint64_t, 16> castlingLocks;
+uint64_t sideLock;
 
 void init() {
   srand(0);
   // Init piece keys and locks
-  for (int piece = P; piece <= k; piece++) {
+  for (int piece = (int)Piece::P; piece <= (int)Piece::k; piece++) {
     for (int sq = 0; sq <= 63; sq++) {
       pieceKeys[piece][sq] = random64();
       pieceLocks[piece][sq] = random64();
     }
   }
 
-  // Init enpassant keys and locks
-  for (int sq = 0; sq <= 63; sq++) {
-    enpassKeys[sq] = random64();
-    enpassLocks[sq] = random64();
+  // Init enpassant files keys and locks
+  for (int f = 0; f < 8; f++) {
+    enpassKeys[f] = random64();
+    enpassLocks[f] = random64();
   }
 
   // Init keys for the different castling rights variations
@@ -40,14 +40,14 @@ void init() {
   sideLock = random64();
 }
 
-U64 genKey(const Board &board) {
+uint64_t genKey(const Board &board) {
   // Reset lock before generating
-  U64 output = 0ULL;
+  uint64_t output = 0ULL;
   // Hash pieces on squares
   int sq;
-  U64 bitboardCopy;
-  for (int piece = P; piece <= k; piece++) {
-    bitboardCopy = board.pieces[piece];
+  uint64_t bitboardCopy;
+  for (int piece = (int)Piece::P; piece <= (int)Piece::k; piece++) {
+    bitboardCopy = board.pos.pieces[piece];
     while (bitboardCopy) {
       sq = Bitboard::getLs1bIndex(bitboardCopy);
       output ^= pieceKeys[piece][sq];
@@ -55,24 +55,24 @@ U64 genKey(const Board &board) {
     }
   }
   // Hash enpassant square
-  if (board.enpassant != noSq)
-    output ^= enpassKeys[board.enpassant];
+  if (board.state.enpassant != Sq::noSq)
+    output ^= enpassKeys[COL(board.state.enpassant)];
   // Hash castling rights
-  output ^= castlingKeys[board.castling];
+  output ^= castlingKeys[board.state.castling];
   // Hash side to move
-  if (board.side == BLACK)
+  if (board.state.side == Color::BLACK)
     output ^= sideKey;
   return output;
 }
 
-U64 genLock(const Board &board) {
+uint64_t genLock(const Board &board) {
   // Reset lock before generating
-  U64 output = 0ULL;
+  uint64_t output = 0ULL;
   // Hash pieces on squares
   int sq;
-  U64 bitboardCopy;
-  for (int piece = P; piece <= k; piece++) {
-    bitboardCopy = board.pieces[piece];
+  uint64_t bitboardCopy;
+  for (int piece = (int)Piece::P; piece <= (int)Piece::k; piece++) {
+    bitboardCopy = board.pos.pieces[piece];
     while (bitboardCopy) {
       sq = Bitboard::getLs1bIndex(bitboardCopy);
       output ^= pieceLocks[piece][sq];
@@ -80,13 +80,28 @@ U64 genLock(const Board &board) {
     }
   }
   // Hash enpassant square
-  if (board.enpassant != noSq)
-    output ^= enpassLocks[board.enpassant];
+  if (board.state.enpassant != Sq::noSq)
+    output ^= enpassLocks[COL(board.state.enpassant)];
   // Hash castling rights
-  output ^= castlingLocks[board.castling];
+  output ^= castlingLocks[board.state.castling];
   // Hash side to move
-  if (board.side == BLACK)
+  if (board.state.side == Color::BLACK)
     output ^= sideLock;
   return output;
 }
+
+uint64_t genPawnKey(const Board &board) {
+  uint64_t key = 0ULL;
+  uint64_t bitboardCopy = board.pos.pieces[board.state.side == Color::WHITE ? (int)Piece::P : (int)Piece::p];
+  int sq;
+  while (bitboardCopy) {
+    sq = Bitboard::getLs1bIndex(bitboardCopy);
+    key ^= Zobrist::pieceKeys[board.state.side == Color::WHITE ? (int)Piece::P : (int)Piece::p][sq];
+    popBit(bitboardCopy, sq);
+  }
+  if (board.state.side == Color::BLACK)
+    key ^= sideKey;
+  return key;
+}
+
 } // namespace Zobrist

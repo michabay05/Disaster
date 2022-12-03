@@ -6,71 +6,74 @@
 #include "zobrist.hpp"
 
 namespace Perft {
-long totalNodes;
-void Driver(Board &board, int depth) {
-  if (depth == 0) {
-    totalNodes++;
-    return;
-  }
-  Move::MoveList moveList;
-  Move::generate(moveList, board);
-  Board clone;
-  for (int i = 0; i < moveList.count; i++) {
-    // Clone the current state of the board
-    clone = board;
-    // Make move if it's not illegal (or check)
-    if (!Move::make(&board, moveList.list[i], Move::allMoves))
-      continue;
 
-    Driver(board, depth - 1);
+uint64_t totalNodes;
 
-    // Restore board state
-    board = clone;
-    /* ============= FOR DEBUG PURPOSES ONLY ===============*/
-    U64 updatedKey = board.hashKey;
-    U64 updatedLock = board.hashLock;
-    Zobrist::genKey(board);
-    Zobrist::genLock(board);
-    if (board.hashKey != updatedKey) {
-      printf("\nBoard.MakeMove(%s)\n", Move::toString(moveList.list[i]).c_str());
-      board.display();
-      printf("Key should've been 0x%llx instead of 0x%llx\n", board.hashKey, updatedKey);
+void driver(Board& board, int depth) {
+    if (depth == 0) {
+        totalNodes++;
+        return;
     }
-    if (board.hashLock != updatedLock) {
-      printf("\nBoard.MakeMove(%s)\n", Move::toString(moveList.list[i]).c_str());
-      board.display();
-      printf("Lock should've been 0x%llx instead of 0x%llx\n", board.hashLock, updatedLock);
+    Move::MoveList moveList;
+    Move::generate(moveList, board);
+    Board clone;
+    for (int i = 0; i < moveList.count; i++) {
+        // Clone the current state of the board
+        clone = board;
+        // Make move if it's not illegal (or check)
+        if (!Move::make(&board, moveList.list[i], Move::MoveType::allMoves))
+            continue;
+
+        driver(board, depth - 1);
+
+        // Restore board state
+        board = clone;
+        /* ============= FOR DEBUG PURPOSES ONLY ===============/
+        uint64_t updatedKey = board.state.posKey;
+        uint64_t updatedLock = board.state.posLock;
+        Zobrist::genKey(board);
+        Zobrist::genLock(board);
+        if (board.state.posKey != updatedKey) {
+            std::cout << "\nBoard.MakeMove(" << Move::toString(moveList.list[i]) << ")\n";
+            board.display();
+            std::cout << "Key should've been " << std::hex << board.state.posKey
+                      << "ULL instead of 0x" << updatedKey << std::dec << "ULL\n";
+        }
+        if (board.state.posLock != updatedLock) {
+            std::cout << "\nBoard.MakeMove(" << Move::toString(moveList.list[i]) << ")\n";
+            board.display();
+            std::cout << "Key should've been " << std::hex << board.state.posKey
+                      << "ULL instead of 0x" << updatedKey << std::dec << "ULL\n";
+        }
+        /*============= FOR DEBUG PURPOSES ONLY =============== */
     }
-    /*============= FOR DEBUG PURPOSES ONLY =============== */
-  }
 }
 
-void Test(Board &board, int depth) {
-  printf("\n----------------- Performance Test (%d) -----------------\n",
-         depth);
-  totalNodes = 0L;
-  Move::MoveList moveList;
-  Move::generate(moveList, board);
-  Time::start();
-  Board clone;
-  for (int i = 0; i < moveList.count; i++) {
-    // Clone the current state of the board
-    clone = board;
-    // Make move if it's not illegal (or check)
-    if (!Move::make(&board, moveList.list[i], Move::allMoves))
-      continue;
+void test(Board& board, const int depth) {
+    std::cout << "\n----------------- Performance Test (" << depth << ") -----------------\n";
+    totalNodes = 0L;
+    Move::MoveList moveList;
+    Move::generate(moveList, board);
+    Time::start();
+    Board clone;
+    for (int i = 0; i < moveList.count; i++) {
+        // Clone the current state of the board
+        clone = board;
+        // Make move if it's not illegal (or check)
+        if (!Move::make(&board, moveList.list[i], Move::MoveType::allMoves))
+            continue;
 
-    long nodesSearchedSoFar = totalNodes;
-    Driver(board, depth - 1);
+        uint64_t nodesSearchedSoFar = totalNodes;
+        driver(board, depth - 1);
 
-    // Restore board state
-    board = clone;
+        // Restore board state
+        board = clone;
 
-    printf("     %s: %ld\n", Move::toString(moveList.list[i]).c_str(),
-           totalNodes - nodesSearchedSoFar);
-  }
-  printf("\n     Depth: %d\n", depth);
-  printf("     Nodes: %d\n", totalNodes);
-  printf("      Time: %lld ms\n", Time::end());
+        std::cout << "     " << Move::toString(moveList.list[i]) << ": "
+                  << (totalNodes - nodesSearchedSoFar) << "\n";
+    }
+    std::cout << "\n     Depth: " << depth << "\n";
+    std::cout << "     Nodes: " << totalNodes << "\n";
+    std::cout << "      Time: " << Time::end() << "\n";
 }
 } // namespace Perft

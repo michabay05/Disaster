@@ -4,6 +4,6 @@
 #include "defs.hpp"
 
 namespace Perft {
-void Driver(Board &board, int depth);
-void Test(Board &board, int depth);
+void driver(Board& board, const int depth);
+void test(Board& board, const int depth);
 } // namespace Perft

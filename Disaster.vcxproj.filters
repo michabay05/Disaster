@@ -15,43 +15,49 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\defs.hpp">
+    <ClInclude Include="src\include\defs.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\bitboard.hpp">
+    <ClInclude Include="src\include\bitboard.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\attack.hpp">
+    <ClInclude Include="src\include\attack.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\magics.hpp">
+    <ClInclude Include="src\include\magics.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\board.hpp">
+    <ClInclude Include="src\include\board.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\move.hpp">
+    <ClInclude Include="src\include\move.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\perft.hpp">
+    <ClInclude Include="src\include\perft.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\misc.hpp">
+    <ClInclude Include="src\include\misc.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\eval.hpp">
+    <ClInclude Include="src\include\eval.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\search.hpp">
+    <ClInclude Include="src\include\search.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\uci.hpp">
+    <ClInclude Include="src\include\uci.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\zobrist.hpp">
+    <ClInclude Include="src\include\zobrist.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\tt.hpp">
+    <ClInclude Include="src\include\tt.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\include\tt_eval.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\include\psqt.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -95,5 +101,14 @@
     <ClCompile Include="src\tt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\tt_eval.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\psqt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\.clang-format" />
   </ItemGroup>
 </Project>
