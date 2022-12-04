@@ -77,10 +77,10 @@ void parsePos(const std::string& command) {
     mainBoard = Board();
     if (command.compare(currentInd, 8, "startpos") == 0) {
         currentInd += 8 + 1; // (+ 1) for the space
-        parseFen(position[1], mainBoard);
+        mainBoard = Board();
     } else if (command.compare(currentInd, 3, "fen") == 0) {
         currentInd += 3 + 1;
-        parseFen(command.substr(currentInd), mainBoard);
+        mainBoard = Board(command.substr(currentInd));
     }
     currentInd = (int)command.find("moves", currentInd);
     if (currentInd == std::string::npos)

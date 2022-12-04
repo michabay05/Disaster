@@ -25,7 +25,7 @@ const int REDUCTION_LIMIT = 3;
 extern int ply, nodes;
 
 void position(Board& board, const int depth);
-void getCPSOrMateScore(const int& score);
+void getCPOrMateScore(const int& score);
 int negamax(Board* board, const int alpha, const int beta, const int depth);
 int quiescence(Board* board, const int alpha, const int beta);
 int scoreMoves(const Board& board, const int move);

@@ -57,7 +57,7 @@
     <ClInclude Include="src\include\tt_eval.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\include\psqt.hpp">
+    <ClInclude Include="src\include\eval_constants.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -104,11 +104,8 @@
     <ClCompile Include="src\tt_eval.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\psqt.cpp">
+    <ClCompile Include="src\eval_constants.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\.clang-format" />
   </ItemGroup>
 </Project>

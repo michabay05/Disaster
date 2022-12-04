@@ -12,7 +12,7 @@ inline int countBits(uint64_t bitboard) {
         ;
     return count;
 }
-inline int getLs1bIndex(const uint64_t bitboard) {
+inline int lsbIndex(const uint64_t bitboard) {
     return bitboard > 0 ? countBits(bitboard ^ (bitboard - 1)) - 1 : 0;
 }
 

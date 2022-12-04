@@ -5,17 +5,16 @@
 
 namespace Zobrist {
 std::array<std::array<uint64_t, 64>, 12> pieceKeys;
-std::array<uint64_t, 64> enpassKeys;
+std::array<uint64_t, 8> enpassKeys;
 std::array<uint64_t, 16> castlingKeys;
 uint64_t sideKey;
 
 std::array<std::array<uint64_t, 64>, 12> pieceLocks;
-std::array<uint64_t, 64> enpassLocks;
+std::array<uint64_t, 8> enpassLocks;
 std::array<uint64_t, 16> castlingLocks;
 uint64_t sideLock;
 
 void init() {
-  srand(0);
   // Init piece keys and locks
   for (int piece = (int)Piece::P; piece <= (int)Piece::k; piece++) {
     for (int sq = 0; sq <= 63; sq++) {
@@ -49,7 +48,7 @@ uint64_t genKey(const Board &board) {
   for (int piece = (int)Piece::P; piece <= (int)Piece::k; piece++) {
     bitboardCopy = board.pos.pieces[piece];
     while (bitboardCopy) {
-      sq = Bitboard::getLs1bIndex(bitboardCopy);
+      sq = Bitboard::lsbIndex(bitboardCopy);
       output ^= pieceKeys[piece][sq];
       popBit(bitboardCopy, sq);
     }
@@ -74,7 +73,7 @@ uint64_t genLock(const Board &board) {
   for (int piece = (int)Piece::P; piece <= (int)Piece::k; piece++) {
     bitboardCopy = board.pos.pieces[piece];
     while (bitboardCopy) {
-      sq = Bitboard::getLs1bIndex(bitboardCopy);
+      sq = Bitboard::lsbIndex(bitboardCopy);
       output ^= pieceLocks[piece][sq];
       popBit(bitboardCopy, sq);
     }
@@ -88,20 +87,6 @@ uint64_t genLock(const Board &board) {
   if (board.state.side == Color::BLACK)
     output ^= sideLock;
   return output;
-}
-
-uint64_t genPawnKey(const Board &board) {
-  uint64_t key = 0ULL;
-  uint64_t bitboardCopy = board.pos.pieces[board.state.side == Color::WHITE ? (int)Piece::P : (int)Piece::p];
-  int sq;
-  while (bitboardCopy) {
-    sq = Bitboard::getLs1bIndex(bitboardCopy);
-    key ^= Zobrist::pieceKeys[board.state.side == Color::WHITE ? (int)Piece::P : (int)Piece::p][sq];
-    popBit(bitboardCopy, sq);
-  }
-  if (board.state.side == Color::BLACK)
-    key ^= sideKey;
-  return key;
 }
 
 } // namespace Zobrist

@@ -20,7 +20,9 @@ enum class Sq : int8_t {
 #define ROW(sq) (((int)sq) >> 3)
 #define COL(sq) (((int)sq) & 7)
 #define SQ(r, f) (((int)r) * 8 + ((int)f))
-#define FLIP(sq) (((7 - ROW(sq)) * 8) + COL(sq))
+#define FLIP(sq) ((int)sq ^ 56)
+#define COLORLESS(piece) (((int)piece) % 6)
+#define SQCLR(r, f) (((int)(r + f + 1)) & 1)
 
 #define setBit(bitboard, square) ((bitboard) |= (1ULL << (square)))
 #define getBit(bitboard, square) (((bitboard) & (1ULL << (square))) ? 1 : 0)
@@ -30,13 +32,6 @@ enum class Sq : int8_t {
 enum class Piece : uint8_t { P, N, B, R, Q, K, p, n, b, r, q, k, E };
 enum class PieceTypes : uint8_t { PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING };
 enum class Color : uint8_t { WHITE, BLACK, BOTH };
-
-inline Color& operator^(const Color& c, const int num) {
-    Color c1 = (Color)((int)c ^ num);
-    return c1;
-}
-
-inline Color& operator^=(const Color& c, const int num) { return operator^(c, num); }
 
 /* Direction offsets */
 enum class Direction : int8_t {

@@ -280,7 +280,7 @@ uint64_t genRookAttack(const int sq, const uint64_t blockerBoard) {
 uint64_t setOccupancy(const int index, const int relevantBits, uint64_t occMask) {
     uint64_t occupancy = 0ULL;
     for (int count = 0; count < relevantBits; count++) {
-        int ls1bIndex = Bitboard::getLs1bIndex(occMask);
+        int ls1bIndex = Bitboard::lsbIndex(occMask);
         popBit(occMask, ls1bIndex);
         if ((index & (1 << count)) > 0)
             setBit(occupancy, ls1bIndex);

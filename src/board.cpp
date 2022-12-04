@@ -3,6 +3,8 @@
 #include <iostream>
 
 #include "attack.hpp"
+#include "bitboard.hpp"
+#include "eval_constants.hpp"
 #include "magics.hpp"
 #include "zobrist.hpp"
 
@@ -20,17 +22,56 @@ const std::array<int, 64> castlingRights = {
     15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
     15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 13, 15, 15, 15, 12, 15, 15, 14};
 
-Position::Position() {
+const std::array<std::string, 8> Board::position = {
+    "8/8/8/8/8/8/8/8 w - - 0 1",
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+    "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+    "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
+    "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
+    "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
+    "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1",
+};
+
+Position::Position()
+{
     pieces.fill(0);
     units.fill(0);
 }
 
-void Board::display() const {
+void Position::updateUnits()
+{
+    units.fill(0);
+    for (int piece = (int)PieceTypes::PAWN; piece <= (int)PieceTypes::KING; piece++) {
+        units[(int)Color::WHITE] |= pieces[piece];
+        units[(int)Color::BLACK] |= pieces[piece + 6];
+    }
+    units[(int)Color::BOTH] = units[(int)Color::WHITE] | units[(int)Color::BLACK];
+}
+
+void EvalState::addPieceScores(const Piece piece, const Sq target)
+{
+    Color pieceClr = (int)piece < 6 ? Color::WHITE : Color::BLACK;
+    Sq pieceTarget = pieceClr == Color::WHITE ? target : (Sq)FLIP(target);
+
+    mgScores[(int)pieceClr] += Eval::PIECE_VALUES[(int)Eval::Phase::MG][COLORLESS(piece)] +
+                               Eval::PSQT_MG[COLORLESS(piece)][(int)pieceTarget];
+    egScores[(int)pieceClr] += Eval::PIECE_VALUES[(int)Eval::Phase::EG][COLORLESS(piece)] +
+                               Eval::PSQT_EG[COLORLESS(piece)][(int)pieceTarget];
+    phase -= Eval::PHASE_VALUES[COLORLESS(piece)];
+}
+
+Board::Board() { parseFen(position[1], *this); }
+
+Board::Board(const std::string& fen) { parseFen(fen, *this); }
+
+void Board::display() const
+{
     std::cout << "\n    +---+---+---+---+---+---+---+---+\n";
     for (int r = 0; r < 8; r++) {
         std::cout << "  " << 8 - r << " |";
         for (int f = 0; f < 8; f++)
-            std::cout << " " << pieceStr[getPieceOnSquare(this->pos, SQ(r, f))] << " |";
+            std::cout << " " << pieceStr[getPieceOnSquare(SQ(r, f))] << " |";
         std::cout << "\n    +---+---+---+---+---+---+---+---+\n";
     }
     std::cout << "      a   b   c   d   e   f   g   h\n\n";
@@ -41,7 +82,8 @@ void Board::display() const {
     std::cout << "        Full moves: " << state.fullMoves << "\n";
 }
 
-void Board::printCastling() const {
+void Board::printCastling() const
+{
     using enum CastlingRights;
 
     std::string castlingLtrs = "----";
@@ -56,16 +98,8 @@ void Board::printCastling() const {
     std::cout << "        Full moves: " << castlingLtrs << "\n";
 }
 
-void Board::updateUnits() {
-    pos.units.fill(0);
-    for (int piece = (int)PieceTypes::PAWN; piece <= (int)PieceTypes::KING; piece++) {
-        pos.units[(int)Color::WHITE] |= pos.pieces[piece];
-        pos.units[(int)Color::BLACK] |= pos.pieces[piece + 6];
-    }
-    pos.units[(int)Color::BOTH] = pos.units[(int)Color::WHITE] | pos.units[(int)Color::BLACK];
-}
-
-int getPieceOnSquare(const Position& pos, const int sq) {
+int Board::getPieceOnSquare(const int sq) const
+{
     using enum Piece;
     for (int i = (int)P; i <= (int)k; i++) {
         if (getBit(pos.pieces[i], sq))
@@ -74,64 +108,49 @@ int getPieceOnSquare(const Position& pos, const int sq) {
     return (int)E;
 }
 
-bool isSquareAttacked(const Color side, const int sq, const Position& pos) {
+bool Board::isSquareAttacked(const int sq) const
+{
     // Attacked by white pawns
-    if ((side == Color::WHITE) &&
+    if ((state.side == Color::WHITE) &&
         (Attack::pawnAttacks[(int)Color::BLACK][sq] & pos.pieces[(int)Piece::P]))
         return true;
     // Attacked by black pawns
-    if ((side == Color::BLACK) &&
+    if ((state.side == Color::BLACK) &&
         (Attack::pawnAttacks[(int)Color::WHITE][sq] & pos.pieces[(int)Piece::p]))
         return true;
     // Attacked by knights
     if (Attack::knightAttacks[sq] &
-        pos.pieces[side == Color::WHITE ? (int)Piece::N : (int)Piece::n])
+        pos.pieces[state.side == Color::WHITE ? (int)Piece::N : (int)Piece::n])
         return true;
     // Attacked by bishops
     if (Magics::getBishopAttack(sq, pos.units[(int)Color::BOTH]) &
-        pos.pieces[side == Color::WHITE ? (int)Piece::B : (int)Piece::b])
+        pos.pieces[state.side == Color::WHITE ? (int)Piece::B : (int)Piece::b])
         return true;
     // Attacked by rooks
     if (Magics::getRookAttack(sq, pos.units[(int)Color::BOTH]) &
-        pos.pieces[side == Color::WHITE ? (int)Piece::R : (int)Piece::r])
+        pos.pieces[state.side == Color::WHITE ? (int)Piece::R : (int)Piece::r])
         return true;
     // Attacked by queens
     if (Magics::getQueenAttack(sq, pos.units[(int)Color::BOTH]) &
-        pos.pieces[side == Color::WHITE ? (int)Piece::Q : (int)Piece::q])
+        pos.pieces[state.side == Color::WHITE ? (int)Piece::Q : (int)Piece::q])
         return true;
     // Attacked by kings
-    if (Attack::kingAttacks[sq] & pos.pieces[side == Color::WHITE ? (int)Piece::K : (int)Piece::k])
+    if (Attack::kingAttacks[sq] &
+        pos.pieces[state.side == Color::WHITE ? (int)Piece::K : (int)Piece::k])
         return true;
 
     // If all of the above cases fail, return false
     return false;
 }
 
-void printAttacked(const Color side, const Position& pos) {
-    std::cout << "\n";
-    for (int r = 0; r < 8; r++) {
-        std::cout << "  " << 8 - r << " |";
-        for (int f = 0; f < 8; f++)
-            std::cout << " " << (isSquareAttacked(side, SQ(r, f), pos) ? 1 : 0);
-
-		std::cout << "\n";
-    }
-    std::cout << "      - - - - - - - -\n      a b c d e f g h\n";
+bool Board::isInCheck()
+{
+    uint8_t piece = state.side == Color::WHITE ? (int)Piece::k : (int)Piece::K;
+    return isSquareAttacked(Bitboard::lsbIndex(pos.pieces[piece]));
 }
 
-/* ------ FEN -------*/
-const std::array<std::string, 8> position = {
-    "8/8/8/8/8/8/8/8 w - - 0 1",
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
-    "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
-    "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
-    "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
-    "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
-    "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1",
-};
-
-void parseFen(const std::string& fen, Board& board) {
+void Board::parseFen(const std::string& fen, Board& board)
+{
     int currIndex = 0;
 
     // Parse the piece portion of the fen and place them on the board
@@ -147,20 +166,37 @@ void parseFen(const std::string& fen, Board& board) {
             }
             if ((fen[currIndex] >= 'A' && fen[currIndex] <= 'Z') ||
                 (fen[currIndex] >= 'a' && fen[currIndex] <= 'z')) {
-                size_t pieceInd;
-                if ((pieceInd = pieceStr.find(fen[currIndex])) != (int)Piece::E)
-                    setBit(board.pos.pieces[pieceInd], SQ(rank, file));
+                size_t piece;
+                if ((piece = pieceStr.find(fen[currIndex])) != (int)Piece::E) {
+                    setBit(board.pos.pieces[piece], SQ(rank, file));
+                    board.evalState.addPieceScores((Piece)piece, (Sq)SQ(rank, file));
+                }
                 currIndex++;
             }
         }
     }
     currIndex++;
     // Parse side to move
-    if (fen[currIndex] == 'w')
+    if (fen[currIndex] == 'w') {
         board.state.side = Color::WHITE;
-    else if (fen[currIndex] == 'b')
+        board.state.xside = Color::BLACK;
+    } else if (fen[currIndex] == 'b') {
         board.state.side = Color::BLACK;
+        board.state.xside = Color::WHITE;
+    }
     currIndex += 2;
+
+    // Check if king is in check in the initial position
+    // If the king is in check, the king has to have a chance to escape it.
+    if (board.isInCheck()) {
+        std::cout << "Failed to initialized board!\n";
+        std::cout << "     [Problem] - Initial position can't have a king being in check and it's "
+                     "not the checked side to move.\n";
+        std::cout
+            << "  [Solution 1] - Modify the position to remove the checked king from check.\n";
+        std::cout << "  [Solution 2] - Change side to move to the side of the checked king.\n\n";
+        std::exit(1);
+    }
 
     // Parse castling rights
     while (fen[currIndex] != ' ') {
@@ -208,9 +244,8 @@ void parseFen(const std::string& fen, Board& board) {
     board.state.fullMoves = atoi(fen.substr(currIndex, count - 1).c_str());
 
     // Update occupancy bitboards
-    board.updateUnits();
+    board.pos.updateUnits();
 
     board.state.posKey = Zobrist::genKey(board);
     board.state.posLock = Zobrist::genLock(board);
-    board.state.pawnKey = Zobrist::genPawnKey(board);
 }

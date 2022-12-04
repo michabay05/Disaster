@@ -109,7 +109,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>C:\Users\micha\Projects\Disaster\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -126,6 +126,8 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>$(SolutionDir)src\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,7 +146,7 @@
     <ClInclude Include="src\include\misc.hpp" />
     <ClInclude Include="src\include\move.hpp" />
     <ClInclude Include="src\include\perft.hpp" />
-    <ClInclude Include="src\include\psqt.hpp" />
+    <ClInclude Include="src\include\eval_constants.hpp" />
     <ClInclude Include="src\include\search.hpp" />
     <ClInclude Include="src\include\tt.hpp" />
     <ClInclude Include="src\include\tt_eval.hpp" />
@@ -161,15 +163,12 @@
     <ClCompile Include="src\misc.cpp" />
     <ClCompile Include="src\move.cpp" />
     <ClCompile Include="src\perft.cpp" />
-    <ClCompile Include="src\psqt.cpp" />
+    <ClCompile Include="src\eval_constants.cpp" />
     <ClCompile Include="src\search.cpp" />
     <ClCompile Include="src\tt.cpp" />
     <ClCompile Include="src\tt_eval.cpp" />
     <ClCompile Include="src\uci.cpp" />
     <ClCompile Include="src\zobrist.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\.clang-format" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -7,7 +7,8 @@
 #include "uci.hpp"
 #include "zobrist.hpp"
 
-namespace Search {
+namespace Search
+{
 // clang-format off
 // [attacker][victim]
 const std::array<std::array<int, 6>, 6> mvvLva =
@@ -34,7 +35,8 @@ std::array<std::array<int, MAX_PLY>, MAX_PLY> pvTable; // [ply][ply]
 // PV flags
 bool followPV, scorePV;
 
-void clearSearchTable() {
+void clearSearchTable()
+{
     for (auto& elem : killerMoves)
         elem.fill(0);
     for (auto& elem : historyMoves)
@@ -44,7 +46,8 @@ void clearSearchTable() {
     pvLength.fill(0);
 }
 
-void position(Board& board, const int depth) {
+void position(Board& board, const int depth)
+{
     int score = 0;
     nodes = 0L;
     followPV = false;
@@ -74,9 +77,9 @@ void position(Board& board, const int depth) {
         beta = score + 50;
         if (pvLength[0]) {
             std::cout << "info score ";
-            getCPSOrMateScore(score);
-            std::cout << " depth " << depth << " nodes " << nodes << " nps "
-                      << ((nodes * 1000) / (float)totalTime) << " time " << totalTime << " pv";
+            getCPOrMateScore(score);
+            std::cout << " depth " << currDepth << " nodes " << nodes << " time " << totalTime
+                      << " nps " << (uint64_t)((nodes * 1000) / (float)totalTime) << " pv";
             for (int i = 0; i < pvLength[0]; i++)
                 std::cout << " " << Move::toString(pvTable[0][i]);
             std::cout << "\n";
@@ -85,7 +88,8 @@ void position(Board& board, const int depth) {
     std::cout << "bestmove " << Move::toString(pvTable[0][0]) << "\n";
 }
 
-void getCPSOrMateScore(const int& score) {
+void getCPOrMateScore(const int& score)
+{
     // Print information about current depth
     if (score > -MATE_VALUE && score < -MATE_SCORE) {
         std::cout << "mate " << (-(score + MATE_VALUE) / 2 - 1);
@@ -96,7 +100,8 @@ void getCPSOrMateScore(const int& score) {
     }
 }
 
-int negamax(Board* board, int alpha, int beta, int depth) {
+int negamax(Board* board, int alpha, int beta, int depth)
+{
     pvLength[ply] = ply;
     int score;
     TT::TTFlags hashFlag = TT::F_ALPHA;
@@ -124,11 +129,7 @@ int negamax(Board* board, int alpha, int beta, int depth) {
     nodes++;
 
     // Is the king in check?
-    bool inCheck = isSquareAttacked(
-        board->state.side ^ 1,
-        Bitboard::getLs1bIndex(
-            board->pos.pieces[board->state.side == Color::WHITE ? (int)Piece::K : (int)Piece::k]),
-        board->pos);
+    bool inCheck = board->isInCheck();
 
     // Check extension
     if (inCheck)
@@ -147,7 +148,7 @@ int negamax(Board* board, int alpha, int beta, int depth) {
         board->state.enpassant = Sq::noSq;
 
         // Give opponent an extra move; 2 moves in one turn
-        board->state.side = board->state.side ^ 1;
+        board->state.changeSide();
         // Hash the extra turn given by hashing the side one more time
         Zobrist::toggleSide(*board);
 
@@ -273,7 +274,8 @@ int negamax(Board* board, int alpha, int beta, int depth) {
     return alpha;
 }
 
-int quiescence(Board* board, int alpha, int beta) {
+int quiescence(Board* board, int alpha, int beta)
+{
     // every 2047 nodes
     if ((nodes & 2047) == 0)
         // "listen" to the GUI/user input
@@ -345,14 +347,16 @@ int quiescence(Board* board, int alpha, int beta) {
     return alpha;
 }
 
-void printMoveScores(const Move::MoveList& moveList, const Board& board) {
+void printMoveScores(const Move::MoveList& moveList, const Board& board)
+{
     std::cout << "Move scores: \n";
     for (int i = 0; i < moveList.count; i++)
         std::cout << "    " << Move::toString(moveList.list[i]).c_str() << ": "
                   << scoreMoves(board, moveList.list[i]) << "\n";
 }
 
-void sortMoves(Move::MoveList& moveList, const Board& board) {
+void sortMoves(Move::MoveList& moveList, const Board& board)
+{
     std::array<int, 256> moveScores;
     // Initialize moveScores with move scores
     for (int i = 0; i < moveList.count; i++)
@@ -384,7 +388,8 @@ void sortMoves(Move::MoveList& moveList, const Board& board) {
           5. History move
           6. Unsorted move
 */
-int scoreMoves(const Board& board, const int move) {
+int scoreMoves(const Board& board, const int move)
+{
     // PV (Principal variation move) scoring
     if (scorePV && pvTable[0][ply] == move) {
         scorePV = false;
@@ -417,7 +422,8 @@ int scoreMoves(const Board& board, const int move) {
     }
 }
 
-void enablePVScoring(Move::MoveList& moveList) {
+void enablePVScoring(Move::MoveList& moveList)
+{
     followPV = false;
     for (int i = 0; i < moveList.count; i++) {
         if (pvTable[0][ply] == moveList.list[i]) {
