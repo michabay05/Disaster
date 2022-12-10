@@ -3,7 +3,8 @@
 #include "bitboard.hpp"
 #include "magics.hpp"
 
-namespace Attack {
+namespace Attack
+{
 
 // Store piece attacks
 std::array<std::array<uint64_t, 64>, 2> pawnAttacks;     // [color][square]
@@ -12,7 +13,7 @@ std::array<uint64_t, 64> kingAttacks;                    // [square]
 std::array<uint64_t, 64> bishopOccMasks;                 // [square]
 std::array<std::array<uint64_t, 512>, 64> bishopAttacks; // [square][occupancy variations]
 std::array<uint64_t, 64> rookOccMasks;                   // [square]
-std::array<std::array<uint64_t, 4096>, 64> rookAttacks;   // [square][occupancy variations]
+std::array<std::array<uint64_t, 4096>, 64> rookAttacks;  // [square][occupancy variations]
 
 // clang-format off
 
@@ -42,7 +43,8 @@ const std::array<int, 64> rookRelevantBits = {
 // clang-format on
 
 /* Initializes attack tables for all pieces */
-void init() {
+void init()
+{
     initLeapers();
     initSliding(PieceTypes::BISHOP);
     initSliding(PieceTypes::ROOK);
@@ -51,7 +53,8 @@ void init() {
 /* Initializes attack tables for leaper pieces
    King, Knight, Pawn
 */
-void initLeapers() {
+void initLeapers()
+{
     for (int sq = 0; sq < 64; sq++) {
         genPawnAttacks(Color::WHITE, sq);
         genPawnAttacks(Color::BLACK, sq);
@@ -63,7 +66,8 @@ void initLeapers() {
 /* Initializes attack tables for sliding pieces
    Queen, Bishop, Rook
 */
-void initSliding(const PieceTypes piece) {
+void initSliding(const PieceTypes piece)
+{
     for (int sq = 0; sq < 64; sq++) {
         // Generate all possible variations which can obstruct the path of the
         // bishop or rook
@@ -90,7 +94,8 @@ void initSliding(const PieceTypes piece) {
     }
 }
 
-void genPawnAttacks(const Color side, const int sq) {
+void genPawnAttacks(const Color side, const int sq)
+{
     /* Since the board is set up where a8 is 0 and h1 is 63,
        the white pieces attack towards 0 while the black pieces
        attack towards 63.
@@ -108,7 +113,8 @@ void genPawnAttacks(const Color side, const int sq) {
     }
 }
 
-void genKnightAttacks(const int sq) {
+void genKnightAttacks(const int sq)
+{
     /* Knight attacks are generated regardless of the
        side to move because knights can go in all directions.
        Both sides use this attack table for knights.
@@ -138,8 +144,9 @@ void genKnightAttacks(const int sq) {
         setBit(knightAttacks[sq], sq + (int)Direction::SW_S);
 }
 
-void genKingAttacks(const int sq) {
-    /* King attacks are generated regardless of the
+void genKingAttacks(const int sq)
+{
+    /* king attacks are generated regardless of the
        side to move because kings can go in all directions.
        Both sides use this attack table for kings.
     */
@@ -162,7 +169,8 @@ void genKingAttacks(const int sq) {
 }
 
 /* Generates all the maximum occupancy on a bishop's path on its given square */
-uint64_t genBishopOccupancy(const int sq) {
+uint64_t genBishopOccupancy(const int sq)
+{
     uint64_t output = 0ULL;
     int r, f;
     int sr = ROW(sq), sf = COL(sq);
@@ -185,7 +193,8 @@ uint64_t genBishopOccupancy(const int sq) {
 
 /* Generates a bishop's attack given its sq and a 'blocking' pieces on its
    path */
-uint64_t genBishopAttack(const int sq, uint64_t blockerBoard) {
+uint64_t genBishopAttack(const int sq, uint64_t blockerBoard)
+{
     uint64_t output = 0ULL;
     int r, f;
     int sr = ROW(sq), sf = COL(sq);
@@ -219,7 +228,8 @@ uint64_t genBishopAttack(const int sq, uint64_t blockerBoard) {
 }
 
 /* Generates all the maximum occupancy on a rook's path on its given square */
-uint64_t genRookOccupancy(const int sq) {
+uint64_t genRookOccupancy(const int sq)
+{
     uint64_t output = 0ULL;
     int r, f;
     int sr = ROW(sq), sf = COL(sq);
@@ -242,7 +252,8 @@ uint64_t genRookOccupancy(const int sq) {
 
 /* Generates a rook's attack given its sq and a 'blocking' pieces on its
    path */
-uint64_t genRookAttack(const int sq, const uint64_t blockerBoard) {
+uint64_t genRookAttack(const int sq, const uint64_t blockerBoard)
+{
     uint64_t output = 0ULL;
     int r, f;
     int sr = ROW(sq), sf = COL(sq);
@@ -277,7 +288,8 @@ uint64_t genRookAttack(const int sq, const uint64_t blockerBoard) {
 
 /* Generates a variation of 'blocking' pieces given an index, relevant bits, and
    occupancy mask */
-uint64_t setOccupancy(const int index, const int relevantBits, uint64_t occMask) {
+uint64_t setOccupancy(const int index, const int relevantBits, uint64_t occMask)
+{
     uint64_t occupancy = 0ULL;
     for (int count = 0; count < relevantBits; count++) {
         int ls1bIndex = Bitboard::lsbIndex(occMask);

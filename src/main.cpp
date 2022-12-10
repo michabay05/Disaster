@@ -21,21 +21,19 @@
 
 void test()
 {
+    //const std::string fen = "4k3/2R5/4K3/8/8/8/8/8 w - - 0 1";
+    //Board b(fen);
     Board b;
     b.display();
-    std::cout << "mg w = " << b.evalState.mgScores[0] << "\n";
-    std::cout << "eg b = " << b.evalState.mgScores[1] << "\n";
-    std::cout << "mg w = " << b.evalState.egScores[0] << "\n";
-    std::cout << "eg b = " << b.evalState.egScores[1] << "\n";
-    std::cout << "phase = " << b.evalState.phase << "\n";
-    std::cout << "Total phase = " << Eval::TOTAL_PHASE << '\n';
-    Search::position(b, 5);
+    for (int sq = 0; sq < 64; sq++) {
+        std::cout << "sq = " << strCoords[sq] << "\n";
+		Eval::genKingZones(sq);
+        std::cout << "\n------------------------------------------------------\n";
+    }
 }
 
 int main(int argc, char **argv)
 {
-    std::ios::sync_with_stdio(false);
-
     // Initializations
     Attack::init();
     Zobrist::init();

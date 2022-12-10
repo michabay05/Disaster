@@ -14,6 +14,7 @@ struct Position
     std::array<uint64_t, 3> units{};
 
     Position();
+    int getPieceOnSquare(const int sq) const;
     void updateUnits();
 };
 
@@ -57,10 +58,9 @@ struct Board
     Board(const std::string& fen);
     void display() const;
     void printCastling() const;
-    int getPieceOnSquare(const int sq) const;
     static void parseFen(const std::string& fenStr, Board& board);
     bool isSquareAttacked(const int sq) const;
-    bool isInCheck();
+    bool isInCheck() const;
 };
 
 enum class CastlingRights : uint8_t { wk, wq, bk, bq };

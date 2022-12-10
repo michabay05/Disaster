@@ -71,7 +71,7 @@ void Board::display() const
     for (int r = 0; r < 8; r++) {
         std::cout << "  " << 8 - r << " |";
         for (int f = 0; f < 8; f++)
-            std::cout << " " << pieceStr[getPieceOnSquare(SQ(r, f))] << " |";
+            std::cout << " " << pieceStr[pos.getPieceOnSquare(SQ(r, f))] << " |";
         std::cout << "\n    +---+---+---+---+---+---+---+---+\n";
     }
     std::cout << "      a   b   c   d   e   f   g   h\n\n";
@@ -98,11 +98,11 @@ void Board::printCastling() const
     std::cout << "        Full moves: " << castlingLtrs << "\n";
 }
 
-int Board::getPieceOnSquare(const int sq) const
+int Position::getPieceOnSquare(const int sq) const
 {
     using enum Piece;
     for (int i = (int)P; i <= (int)k; i++) {
-        if (getBit(pos.pieces[i], sq))
+        if (getBit(pieces[i], sq))
             return i;
     }
     return (int)E;
@@ -143,7 +143,7 @@ bool Board::isSquareAttacked(const int sq) const
     return false;
 }
 
-bool Board::isInCheck()
+bool Board::isInCheck() const
 {
     uint8_t piece = state.side == Color::WHITE ? (int)Piece::k : (int)Piece::K;
     return isSquareAttacked(Bitboard::lsbIndex(pos.pieces[piece]));
